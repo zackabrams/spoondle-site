@@ -122,7 +122,8 @@ button{font:inherit;color:inherit}
 .usage{display:flex;justify-content:center;gap:8px}
 .use{display:inline-flex;align-items:center;gap:5px;padding:2px 10px 2px 8px;border-radius:99px;border:1px solid var(--line);font-size:12px;font-weight:650;color:var(--muted);opacity:.6;font-variant-numeric:tabular-nums}
 .use i{font-style:normal}
-.use.reveal i{width:10px;height:10px;border-radius:2px;background:linear-gradient(90deg,#d5d5d2 50%,#f6cf6c 50%)}
+.eye{width:1.15em;height:1.15em;margin-right:.3em;vertical-align:-.22em}
+.use .eye{width:14px;height:14px;margin:0}
 .use.on{opacity:1;border-color:transparent;color:#3a2a08}
 .use.hint.on{background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a}
 .use.reveal.on{color:#4d4d49;background:linear-gradient(165deg,#e6e6e4,#d5d5d2 55%,#c1c1bd);box-shadow:0 1.5px 0 #8f8f8a}
@@ -152,6 +153,7 @@ button{font:inherit;color:inherit}
 .lifted{z-index:30}
 .tile.lifted,.lifted .tile,.tile.picked{cursor:grabbing;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(150,120,70,.25),0 calc(var(--s)*.07) 0 var(--tile-edge),calc(var(--s)*var(--lsx-k) + var(--lsx-px,0px)) calc(var(--s)*var(--lsy-k) + var(--lsy-px,0px)) calc(var(--s)*.5) var(--shadow-lift)}
 .tile.picked{translate:0 -6px}
+.tile.previewed{translate:0 -3px;outline:2.5px solid var(--accent);outline-offset:2px}
 .tile.target{z-index:20;transition:translate .2s cubic-bezier(.2,1.25,.45,1),rotate .25s,scale .16s,box-shadow .16s}
 .solved .tile{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 calc(var(--s)*.07) 0 var(--tile-edge),0 0 0 2px var(--accent),0 6px 14px var(--shadow)}
 
@@ -214,7 +216,7 @@ dialog p{margin:10px 0;line-height:1.5}
 .ex em{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .example b{color:var(--accent);text-decoration:underline;text-underline-offset:4px}
 .example strong{color:var(--accent)}
-/* One statement per line (the categories; Hint and Show a clue). Like the rules, they shrink a touch on narrow phones. */
+/* One statement per line (the categories; Hint and Reveal). Like the rules, they shrink a touch on narrow phones. */
 .lines{font-size:min(15px,3.6vw)}
 .lines>span{display:block;text-wrap:pretty}
 .fine{font-size:13px;color:var(--muted)}
@@ -282,7 +284,7 @@ dialog p{margin:10px 0;line-height:1.5}
   .mat{gap:8px;padding:10px 12px;border-radius:16px}
   .slot{min-height:calc(var(--mat-s,50px) + 8px)}
   .found{height:36px}
-  .message{min-height:36px;font-size:13px}   /* room for a pill, so Show a clue never shifts the layout */
+  .message{min-height:36px;font-size:13px}   /* room for a pill, so Reveal never shifts the layout */
   .bottom{flex:none}
   
   #share-text{font-size:16px}
@@ -356,10 +358,11 @@ dialog p{margin:10px 0;line-height:1.5}
 .splash.shown img{opacity:1;scale:1}
 .splash.leaving{opacity:0;pointer-events:none}
 /* "sticky" and "swappy" in How to play wear the gray and amber a clue paints on tiles, and act the part now and then. */
-/* Hint and Show a clue appear in How to play as small copies of the real buttons. */
+/* Hint and Reveal appear in How to play as small copies of the real buttons. */
 .controls{line-height:1.7}
 .controls>span+span{margin-top:10px}
 .as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
+.together{white-space:nowrap}
 .tint{display:inline-block;padding:0 .32em;border-radius:5px;font-weight:650;line-height:1.35}
 .tint.swap{color:#3a2a08;background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a;animation:swappy 3.6s ease-in-out .8s infinite}
 .tint.stay{color:#4d4d49;background:linear-gradient(165deg,#e6e6e4,#d5d5d2 55%,#c1c1bd);box-shadow:0 1.5px 0 #8f8f8a;animation:sticky 3.6s ease-in-out 2.6s infinite}

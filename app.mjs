@@ -241,7 +241,21 @@ function pill(label, onClick, primary = false) {
   const b = document.createElement('button'); b.type = 'button'; b.className = primary ? 'pill primary' : 'pill'; b.textContent = label;
   b.addEventListener('click', () => onClick(b)); return b;
 }
+// Reveal wears an eye, as Hint wears its ✦ (the reveals counter above the answers has the same eye).
+const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>';
+// On a computer, pointing at Reveal (or tabbing to it) outlines the two tiles it would color.
+function revealPill() {
+  const b = pill('Reveal', showClue); b.insertAdjacentHTML('afterbegin', EYE);
+  const preview = on => { if (!lastWrong) return;
+    lastWrong.ids.forEach((id, i) => document.querySelector(`.tile[data-card="${id}"][data-index="${lastWrong.positions[i]}"]`)?.classList.toggle('previewed', on)); };
+  b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') preview(true); });
+  b.addEventListener('pointerleave', () => preview(false));
+  b.addEventListener('focus', () => { if (b.matches(':focus-visible')) preview(true); });
+  b.addEventListener('blur', () => preview(false));
+  return b;
+}
 function say(parts = null) {
+  document.querySelectorAll('.tile.previewed').forEach(t => t.classList.remove('previewed'));
   const p = puzzle(), r = record(), s = state();
   message.replaceChildren(); relight();
   $('actions').hidden = r.finishedAt !== null;
@@ -338,7 +352,7 @@ function nope(wrong) {
     // A wrong trade is free. Its clue counts as a reveal, and only once per trade.
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
-    say(clued ? ['Not an answer.'] : ['Not an answer.', pill('Show a clue (+1 reveal)', showClue)]);
+    say(clued ? ['Not an answer.'] : ['Not an answer.', revealPill()]);
   }, 760);
 }
 function showClue() {
