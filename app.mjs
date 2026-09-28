@@ -558,6 +558,8 @@ function applyTheme(id, save = false) {
   if (save) try { localStorage.setItem('spoondle-theme', id); } catch {}
   document.querySelector('meta[name="theme-color"]').content = THEME_COLOR[id];
   for (const b of $('swatches').children) b.setAttribute('aria-pressed', String(b.dataset.pick === id));
+  // Tables differ in padding and answer-sheet height, so size the tiles again for this one.
+  if (shelf.childElementCount) { sizeTiles(); pileUp(); }
   relight();
 }
 function buildPicker() {
