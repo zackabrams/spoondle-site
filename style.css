@@ -345,6 +345,10 @@ dialog p{margin:12px 0;line-height:1.5}
 .splash.shown img{opacity:1;scale:1}
 .splash.leaving{opacity:0;pointer-events:none}
 /* "sticky" and "swappy" in How to play wear the gray and amber a clue paints on tiles, and act the part now and then. */
+/* Hint and Show a clue appear in How to play as small copies of the real buttons. */
+.controls{line-height:1.7}
+.controls>span+span{margin-top:10px}
+.as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
 .tint{display:inline-block;padding:0 .32em;border-radius:5px;font-weight:650;line-height:1.35}
 .tint.swap{color:#3a2a08;background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a;animation:swappy 3.6s ease-in-out .8s infinite}
 .tint.stay{color:#4d4d49;background:linear-gradient(165deg,#e6e6e4,#d5d5d2 55%,#c1c1bd);box-shadow:0 1.5px 0 #8f8f8a;animation:sticky 3.6s ease-in-out 2.6s infinite}
