@@ -26,9 +26,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=yeqay2lz">
+<link rel="stylesheet" href="style.css?v=9wtx0rzh">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=xrugpig1","./progress.mjs":"./progress.mjs?v=2g8znd87","./puzzles.mjs":"./puzzles.mjs?v=2biaxq68","./seal.mjs":"./seal.mjs?v=1jphmj7k"}}</script>
-<script type="module" src="app.mjs?v=17hioho7"></script>
+<script type="module" src="app.mjs?v=293e3dos"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater." width="1734" height="907"></div>
@@ -65,16 +65,16 @@
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title">
   <div class="dialog-top"><h2 id="help-title">How to play</h2><button class="close-button" data-close="help-dialog" aria-label="Close">×</button></div>
-  <ol class="rules">
+  <ul class="rules">
     <li>Place a word from each column onto the mat.</li>
     <li>Drag tiles around until you uncover an answer.</li>
     <li>Careful, it may be backwards!</li>
-  </ol>
+  </ul>
   <div class="examples">
     <div class="example-track" id="example-track">
-      <figure class="example-card"><div class="example"><div class="ex"><div>DOO<b>M</b> + <b>R</b>AT</div><span aria-hidden="true">↓</span><strong>DOORMAT</strong></div><div class="ex backwards"><div><b>T</b>AP + CA<b>N</b></div><span aria-hidden="true">↓</span><strong>CATNAP</strong><em>backwards!</em></div></div><figcaption>Compound words</figcaption></figure>
-      <figure class="example-card"><div class="example"><div class="ex"><div><b>R</b>OB + <b>B</b>OSS</div><span aria-hidden="true">↓</span><strong>BOB ROSS</strong></div><div class="ex backwards"><div><b>N</b>AY + GREE<b>D</b></div><span aria-hidden="true">↓</span><strong>GREEN DAY</strong><em>backwards!</em></div></div><figcaption>Proper nouns</figcaption></figure>
-      <figure class="example-card"><div class="example"><div class="ex"><div>F<b>U</b>R + T<b>O</b>NE</div><span aria-hidden="true">↓</span><strong>FORTUNE</strong></div><div class="ex backwards"><div><b>R</b>AIN + BA<b>G</b></div><span aria-hidden="true">↓</span><strong>BARGAIN</strong><em>backwards!</em></div></div><figcaption>Hidden words</figcaption></figure>
+      <figure class="example-card"><div class="example"><div class="ex"><div>DOO<b>M</b> + <b>R</b>AT</div><span aria-hidden="true">↓</span><strong>DOORMAT</strong></div><div class="ex backwards"><div><b>T</b>AP + CA<b>N</b></div><span aria-hidden="true">↓</span><strong>CATNAP</strong><em>backwards!</em></div></div><div class="demo" aria-hidden="true"></div><div class="demo-note" aria-hidden="true"></div><figcaption>Compound words</figcaption></figure>
+      <figure class="example-card"><div class="example"><div class="ex"><div><b>R</b>OB + <b>B</b>OSS</div><span aria-hidden="true">↓</span><strong>BOB ROSS</strong></div><div class="ex backwards"><div><b>N</b>AY + GREE<b>D</b></div><span aria-hidden="true">↓</span><strong>GREEN DAY</strong><em>backwards!</em></div></div><div class="demo" aria-hidden="true"></div><div class="demo-note" aria-hidden="true"></div><figcaption>Proper nouns</figcaption></figure>
+      <figure class="example-card"><div class="example"><div class="ex"><div>F<b>U</b>R + T<b>O</b>NE</div><span aria-hidden="true">↓</span><strong>FORTUNE</strong></div><div class="ex backwards"><div><b>R</b>AIN + BA<b>G</b></div><span aria-hidden="true">↓</span><strong>BARGAIN</strong><em>backwards!</em></div></div><div class="demo" aria-hidden="true"></div><div class="demo-note" aria-hidden="true"></div><figcaption>Hidden words</figcaption></figure>
     </div>
     <button class="example-arrow" id="example-prev" type="button" aria-label="Previous examples" disabled>‹</button>
     <button class="example-arrow" id="example-next" type="button" aria-label="Next examples">›</button>

@@ -613,13 +613,71 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
 });
 addEventListener('resize', () => { sizeTiles(); relight(); pileUp(); });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
-$('help').addEventListener('click', () => { $('help-dialog').showModal(); refreshClocks(); });
-$('help-dialog').addEventListener('close', () => { try { localStorage.setItem('spoondle-help-seen-v2', '1'); } catch {} refreshClocks(); });
+function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); }
+$('help').addEventListener('click', openHelp);
+$('help-dialog').addEventListener('close', () => { demoRun++; try { localStorage.setItem('spoondle-help-seen-v2', '1'); } catch {} refreshClocks(); });
 // How to play: three example cards, flipped with a swipe or the arrows.
 const examples = $('example-track');
 const exampleShown = () => Math.round(examples.scrollLeft / (examples.clientWidth || 1));
 function flipExample(step) { examples.scrollTo({ left: (exampleShown() + step) * examples.clientWidth, behavior: RM ? 'auto' : 'smooth' }); }
-examples.addEventListener('scroll', () => { const i = exampleShown(); $('example-prev').disabled = i === 0; $('example-next').disabled = i === examples.children.length - 1; }, { passive: true });
+let demoTimer = 0;
+examples.addEventListener('scroll', () => {
+  const i = exampleShown(); $('example-prev').disabled = i === 0; $('example-next').disabled = i === examples.children.length - 1;
+  clearTimeout(demoTimer); demoTimer = setTimeout(startDemo, 160);   // once the card settles, play it from the top
+}, { passive: true });
+
+// Each example card plays its examples on a little mat, in the table's own tiles: the two words,
+// the trade, then the answer (read backwards when it is). The written examples are the script.
+let demoRun = 0;
+const demoPause = ms => new Promise(r => setTimeout(r, ms));
+function demoScript(card) {
+  return [...card.querySelectorAll('.ex')].map(ex => {
+    const [a, b] = ex.firstElementChild.innerHTML.split(' + ').map(w => ({ word: w.replace(/<[^>]+>/g, ''), at: w.indexOf('<b>') }));
+    return { a, b, answer: ex.querySelector('strong').textContent, backwards: ex.classList.contains('backwards') };
+  });
+}
+function demoWords(card, { a, b, answer }) {
+  const stage = card.querySelector('.demo');
+  const s = Math.max(20, Math.min(34, Math.floor((stage.clientWidth - 24 - 3 * answer.length) / (answer.length + 1))));
+  const row = word => { const w = document.createElement('div'); w.className = 'word'; w.style.cssText = `--s:${s}px;--gap:3px`; for (const ch of word) w.append(makeTile(ch)); return w; };
+  const rows = [row(a.word), row(b.word)];
+  stage.replaceChildren(...rows); card.querySelector('.demo-note').textContent = '';
+  return { stage, rows, s };
+}
+function demoMove(tiles, mutate, duration, lift = 0) {
+  const before = tiles.map(t => t.getBoundingClientRect());
+  mutate();
+  return Promise.all(tiles.map((t, i) => {
+    const n = t.getBoundingClientRect(), dx = before[i].left - n.left, dy = before[i].top - n.top;
+    const mid = lift ? [{ transform: `translate(${dx / 2}px,${dy / 2 - lift}px) scale(1.1)`, offset: .5 }] : [];
+    return t.animate([{ transform: `translate(${dx}px,${dy}px)` }, ...mid, { transform: 'none' }], { duration, easing: RM ? 'ease-out' : 'cubic-bezier(.3,.7,.3,1)' }).finished.catch(() => {});
+  }));
+}
+async function playDemo(card, run) {
+  const alive = () => run === demoRun && $('help-dialog').open, script = demoScript(card);
+  for (let k = 0; alive(); k = (k + 1) % script.length) {
+    const ex = script[k], { stage, rows: [top, bottom], s } = demoWords(card, ex);
+    stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
+    await demoPause(900); if (!alive()) return;
+    const x = top.children[ex.a.at], y = bottom.children[ex.b.at];
+    await demoMove([x, y], () => { const m = document.createComment(''); x.replaceWith(m); y.replaceWith(x); m.replaceWith(y); }, 600, s * .5);
+    top.classList.add('solved'); bottom.classList.add('solved');
+    await demoPause(600); if (!alive()) return;
+    const [first, second] = ex.backwards ? [bottom, top] : [top, bottom], tiles = [...first.children, ...second.children];
+    const answer = document.createElement('div'); answer.className = 'word solved'; answer.style.cssText = top.style.cssText;
+    await demoMove(tiles, () => { answer.append(...first.children); if (ex.answer.includes(' ')) answer.append(makeGap()); answer.append(...second.children); stage.replaceChildren(answer); }, 650);
+    if (ex.backwards) card.querySelector('.demo-note').textContent = 'Backwards!';
+    await demoPause(1700); if (!alive()) return;
+    await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).finished.catch(() => {});
+    stage.getAnimations().forEach(a => a.cancel());
+  }
+}
+function startDemo(fresh = false) {
+  const run = ++demoRun;
+  // Every card shows its first two words right away, so a card never slides in empty.
+  if (fresh) for (const card of examples.children) demoWords(card, demoScript(card)[0]);
+  playDemo(examples.children[exampleShown()], run);
+}
 $('example-prev').addEventListener('click', () => flipExample(-1));
 $('example-next').addEventListener('click', () => flipExample(1));
 $('start').addEventListener('click', startPuzzle);
@@ -660,5 +718,5 @@ function welcome() {
     setTimeout(() => { if (!splash.classList.contains('shown')) leave(); }, 2500);   // never wait long on a slow connection
   });
 }
-if (!helpSeen) welcome().then(() => { $('help-dialog').showModal(); refreshClocks(); });
+if (!helpSeen) welcome().then(openHelp);
 buildPicker(); applyTheme(theme()); showSound(); build();
