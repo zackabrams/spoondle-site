@@ -68,13 +68,14 @@ function unpile() {
   let last = 0;
   order.forEach((t, i) => {
     const dx = +t.dataset.px, dy = +t.dataset.py, rot = +t.dataset.pr, delay = i * 24, duration = 620;
-    t.style.transform = ''; t.style.zIndex = ''; delete t.dataset.px; delete t.dataset.py; delete t.dataset.pr;
-    if (RM) return;
+    t.style.transform = ''; delete t.dataset.px; delete t.dataset.py; delete t.dataset.pr;
+    if (RM) { t.style.zIndex = ''; return; }
+    t.style.zIndex = '25';   // above the mat the whole way home (on a wide screen the pile sits on it)
     t.animate([
       { transform: `translate(${dx}px,${dy}px) rotate(${rot}deg)` },
       { transform: `translate(${(dx * .45).toFixed(1)}px,${(dy * .45 - 22).toFixed(1)}px) rotate(${Math.round(rot * .3)}deg) scale(1.14)`, offset: .45 },
       { transform: 'none' }
-    ], { duration, delay, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' });
+    ], { duration, delay, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' }).finished.then(() => { t.style.zIndex = ''; }, () => { t.style.zIndex = ''; });
     if (i % 3 === 0) setTimeout(() => clack('place', .35), delay + duration * .9);
     last = delay + duration;
   });
@@ -200,18 +201,20 @@ function sizeTiles() {
   const tooTall = () => {
     const bar = document.querySelector('.bottom').getBoundingClientRect(), table = shelf.getBoundingClientRect();
     const hitsBar = r => r.left < bar.right && bar.left < r.right && r.bottom > bar.top + .5;
-    return app.scrollHeight > app.clientHeight || table.bottom > area.getBoundingClientRect().bottom + .5 || hitsBar(table) || hitsBar(message.getBoundingClientRect());
+    return app.scrollHeight > app.clientHeight || (between && document.documentElement.scrollHeight > innerHeight) || table.bottom > area.getBoundingClientRect().bottom + .5 || hitsBar(table) || hitsBar(message.getBoundingClientRect());
   };
   const [left, right] = [0, 1].map(c => Math.max(...cards.filter(card => card.column === c).map(card => card.word.length)));
   const longest = Math.max(left, right);
-  mat.style.setProperty('--mat-s', `${Math.min(50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
   // On a wide screen the mat sits inside the table's width, between the columns, so leave room for it.
   const t = shelf.getBoundingClientRect(), m = mat.getBoundingClientRect();
   const between = m.left > t.left && m.right < t.right && m.top < t.bottom && m.bottom > t.top;
+  // A wide screen gets bigger tiles, growing with the window's height.
+  const tall = Math.max(0, innerHeight - 800);
+  mat.style.setProperty('--mat-s', `${Math.min(between ? Math.min(72, 60 + Math.floor(tall / 20)) : 50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
   let size = between
-    ? Math.floor(((shelf.clientWidth - m.width - 72) / 2 - 3 * (longest - 1)) / longest)   // two equal sides around the mat
+    ? Math.floor(((shelf.clientWidth - m.width - 2 * parseFloat(getComputedStyle(shelf).columnGap)) / 2 - 3 * (longest - 1)) / longest)   // two equal sides around the mat
     : Math.floor((shelf.clientWidth - 14 - 3 * (left + right - 2)) / (left + right));
-  size = Math.max(20, Math.min(46, size));
+  size = Math.max(20, Math.min(between ? Math.min(66, 56 + Math.floor(tall / 25)) : 46, size));
   shelf.style.setProperty('--shelf-s', `${size}px`);
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
 }
