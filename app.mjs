@@ -98,6 +98,16 @@ function updateStats() {
 let audio = null, soundOn = true;
 try { soundOn = localStorage.getItem('spoondle-sound') !== 'off'; } catch {}
 const icon = path => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+// Relax mode's button shows the mode you're in: a stopwatch while timed, a teacup while relaxed.
+const STOPWATCH = icon('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M12 2.5V6M18.2 6.8l1.4-1.4"/>');
+const TEACUP = icon('<path d="M4 10h12.5v3a6 6 0 0 1-6 6h-.5a6 6 0 0 1-6-6z"/><path d="M16.5 11.2h1.3a2.6 2.6 0 0 1 0 5.2h-1.9"/><path d="M8 3.2c-.9 1.1.9 2.1 0 3.3M12 3.2c-.9 1.1.9 2.1 0 3.3"/><path d="M3 21.5h15"/>');
+let relaxed = false;
+try { relaxed = localStorage.getItem('spoondle-relax') === 'on'; } catch {}
+function showRelax() {
+  const b = $('relax'); b.innerHTML = relaxed ? TEACUP : STOPWATCH; b.setAttribute('aria-pressed', String(relaxed));
+  b.setAttribute('aria-label', relaxed ? 'Relax mode on (no timer)' : 'Timer on'); b.title = relaxed ? 'Relax mode: no timer' : 'Timer on';
+  document.documentElement.classList.toggle('relaxed', relaxed);
+}
 const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>');
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
 const TABLE = icon('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
@@ -219,7 +229,7 @@ function sizeTiles() {
   mat.style.setProperty('--mat-s', `${Math.min(between ? Math.min(72, 60 + Math.floor(tall / 20)) : 50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
   let size = between
     ? Math.floor(((shelf.clientWidth - m.width - 2 * parseFloat(getComputedStyle(shelf).columnGap)) / 2 - 3 * (longest - 1)) / longest)   // two equal sides around the mat
-    : Math.floor((shelf.clientWidth - 14 - 3 * (left + right - 2)) / (left + right));
+    : Math.floor((shelf.clientWidth - 26 - 3 * (left + right - 2)) / (left + right));   // two 12px aisles around the divider
   size = Math.max(20, Math.min(between ? Math.min(66, 56 + Math.floor(tall / 25)) : 46, size));
   shelf.style.setProperty('--shelf-s', `${size}px`);
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
@@ -256,6 +266,8 @@ function revealPill() {
   return b;
 }
 function say(parts = null) {
+  const done = record().finishedAt !== null;
+  for (const el of [shelf, mat]) { el.classList.toggle('finished', done); el.classList.toggle('given-up', done && state().revealed > 0); }
   document.querySelectorAll('.tile.previewed').forEach(t => t.classList.remove('previewed'));
   const p = puzzle(), r = record(), s = state();
   message.replaceChildren(); relight();
@@ -263,7 +275,7 @@ function say(parts = null) {
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
   if (r.finishedAt !== null) {
     const next = nextUnfinished();
-    message.append(s.revealed ? 'Answers shown.' : `Solved in ${formatTime(elapsedMs(r))}.`, pill('Share', shareResult));
+    message.append(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`, pill('Share', shareResult));
     message.append(next >= 0 ? pill('Next puzzle', () => goTo(next), true) : 'That’s all nine. Thanks for playing!');
     return;
   }
@@ -342,11 +354,11 @@ function trade(a, b, lifted = null) {
     finishRecord(puzzle(), record(), saved.completionDays);
     persist(); updateStats();
     solve(hit, hit.ids[0] === ids[0] ? [wa, wb] : [wb, wa]);
-  }, 220);
+  }, 380);
 }
 function nope(wrong) {
   clack('nope', .7);
-  slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 380 }));
+  slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 460 }));
   setTimeout(() => {
     const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
     if (!wrong) return say(['Those letters match.']);
@@ -354,7 +366,7 @@ function nope(wrong) {
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
     say(clued ? ['Not an answer.'] : ['Not an answer.', revealPill()]);
-  }, 760);
+  }, 1000);
 }
 function showClue() {
   if (!lastWrong || busy) return;
@@ -446,7 +458,7 @@ function giveUp() {
 }
 function resultText() {
   const url = new URL(location.href); url.search = ''; url.hash = ''; url.searchParams.set('p', keys[board]);
-  return shareText(puzzle(), record(), url.href);
+  return shareText(puzzle(), record(), url.href, { relaxed });
 }
 async function shareResult(button) {
   const text = resultText();
@@ -633,6 +645,11 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if (!chosen) applyTheme(systemTheme());
 });
 addEventListener('resize', () => { sizeTiles(); relight(); pileUp(); });
+$('relax').addEventListener('click', () => {
+  relaxed = !relaxed; try { localStorage.setItem('spoondle-relax', relaxed ? 'on' : 'off'); } catch {}
+  showRelax(); clack('pick', .6);
+  if (record().finishedAt === null) say([relaxed ? 'Relax mode: no timer.' : 'Timer on.']); else say();
+});
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
 function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); }
 $('help').addEventListener('click', openHelp);
@@ -751,4 +768,4 @@ function welcome() {
   });
 }
 if (!helpSeen) welcome().then(openHelp);
-buildPicker(); applyTheme(theme()); showSound(); build();
+buildPicker(); applyTheme(theme()); showSound(); showRelax(); build();
