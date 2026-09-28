@@ -207,7 +207,7 @@ dialog p{margin:12px 0;line-height:1.5}
 .example strong{color:var(--accent)}
 /* One statement per line (the categories; Hint and Show a clue). Like the rules, they shrink a touch on narrow phones. */
 .lines{font-size:min(15px,3.6vw)}
-.lines span{display:block;text-wrap:pretty}
+.lines>span{display:block;text-wrap:pretty}
 .fine{font-size:13px;color:var(--muted)}
 .fine a{color:var(--accent)}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
@@ -344,5 +344,11 @@ dialog p{margin:12px 0;line-height:1.5}
 .splash img{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(108vw,900px,calc((100dvh - 24px)*1734/907));max-width:none;height:auto;opacity:0;scale:.97;transition:opacity .5s ease,scale .8s cubic-bezier(.2,.8,.2,1)}
 .splash.shown img{opacity:1;scale:1}
 .splash.leaving{opacity:0;pointer-events:none}
-@media (prefers-reduced-motion: reduce){.splash img{scale:1}}
+/* "sticky" and "swappy" in How to play wear the gray and amber a clue paints on tiles, and act the part now and then. */
+.tint{display:inline-block;padding:0 .32em;border-radius:5px;font-weight:650;line-height:1.35}
+.tint.swap{color:#3a2a08;background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a;animation:swappy 3.6s ease-in-out .8s infinite}
+.tint.stay{color:#4d4d49;background:linear-gradient(165deg,#e6e6e4,#d5d5d2 55%,#c1c1bd);box-shadow:0 1.5px 0 #8f8f8a;animation:sticky 3.6s ease-in-out 2.6s infinite}
+@keyframes swappy{0%,72%,100%{transform:none}78%{transform:translateY(-3px) rotate(-7deg)}86%{transform:translateY(-3px) rotate(7deg)}93%{transform:none}}
+@keyframes sticky{0%,74%,100%{transform:none}80%{transform:scale(1.08,.86)}88%{transform:scale(.97,1.04)}94%{transform:none}}
+@media (prefers-reduced-motion: reduce){.splash img{scale:1}.tint{animation:none}}
 @media (prefers-reduced-motion: reduce){.tile,.word{transition-duration:.12s}.tile.target{transition-timing-function:ease-out}dialog[open]{animation:none}}
