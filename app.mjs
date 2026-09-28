@@ -242,7 +242,7 @@ function pill(label, onClick, primary = false) {
   const b = document.createElement('button'); b.type = 'button'; b.className = primary ? 'pill primary' : 'pill'; b.textContent = label;
   b.addEventListener('click', () => onClick(b)); return b;
 }
-// Reveal wears an eye, as Hint wears its ✦ (the reveals counter above the answers has the same eye).
+// Reveal wears an eye, as Hint wears a lightbulb (the counters above the answers wear the same two).
 const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>';
 // On a computer, pointing at Reveal (or tabbing to it) outlines the two tiles it would color.
 function revealPill() {

@@ -26,9 +26,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=1l23933i">
+<link rel="stylesheet" href="style.css?v=2761jsfs">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=x2lrh0w9","./progress.mjs":"./progress.mjs?v=2eal1m9l","./puzzles.mjs":"./puzzles.mjs?v=2biaxq68","./seal.mjs":"./seal.mjs?v=1jphmj7k"}}</script>
-<script type="module" src="app.mjs?v=1n2vr4p4"></script>
+<script type="module" src="app.mjs?v=eiaqeztp"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater." width="1734" height="907"></div>
@@ -47,7 +47,7 @@
     <nav class="nav" aria-label="Choose a puzzle"><button id="prev" type="button" aria-label="Previous puzzle">←</button><span id="count">1 / 9</span><button id="next" type="button" aria-label="Next puzzle">→</button></nav>
   </div>
   <div class="play-area" id="play-area">
-    <div class="usage" id="usage"><span class="use hint" id="use-hints"><i aria-hidden="true">✦</i><b>0</b> hints</span><span class="use reveal" id="use-reveals"><svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><b>0</b> reveals</span></div>
+    <div class="usage" id="usage"><span class="use hint" id="use-hints"><svg class="bulb" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8a6.2 6.2 0 0 0-3.7 11.2c.9.7 1.4 1.6 1.5 2.8h4.4c.1-1.2.6-2.1 1.5-2.8A6.2 6.2 0 0 0 12 2.8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M9.6 19.4h4.8M10.6 22h2.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><b>0</b> hints</span><span class="use reveal" id="use-reveals"><svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><b>0</b> reveals</span></div>
     <div class="tray" id="tray" aria-label="Answers found"></div>
     <p class="clue" id="clue" aria-live="polite"></p>
     <div class="shelf" id="shelf" aria-label="Words"></div>
@@ -61,7 +61,7 @@
   </div>
   <div class="bottom">
     <span class="stats"><span id="timer" role="timer" aria-label="Time">0:00</span><span id="tally"></span></span>
-    <span class="actions" id="actions"><button id="hint" class="text-btn" type="button">✦ Hint</button><button id="give-up" class="text-btn" type="button">Give up</button></span>
+    <span class="actions" id="actions"><button id="hint" class="text-btn" type="button"><svg class="bulb" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8a6.2 6.2 0 0 0-3.7 11.2c.9.7 1.4 1.6 1.5 2.8h4.4c.1-1.2.6-2.1 1.5-2.8A6.2 6.2 0 0 0 12 2.8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M9.6 19.4h4.8M10.6 22h2.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Hint</button><button id="give-up" class="text-btn" type="button">Give up</button></span>
   </div>
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title">
@@ -82,7 +82,7 @@
     <button class="example-arrow" id="example-next" type="button" aria-label="Next examples">›</button>
   </div>
   <p class="lines"><span><strong>Compound words</strong> are two words joined together.</span> <span><strong>Proper nouns</strong> are people, places, and titles.</span> <span><strong>Hidden words</strong> are ordinary words that split in two.</span></p>
-  <p class="lines controls"><span><span class="text-btn as-label">✦ Hint</span> lights up a tile that wants to swap.</span> <span><span class="pill as-label"><svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>Reveal</span> shows whether the tiles you just tried are <span class="together"><span class="tint stay">sticky</span> or <span class="tint swap">swappy</span>.</span></span></p>
+  <p class="lines controls"><span><span class="text-btn as-label"><svg class="bulb" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8a6.2 6.2 0 0 0-3.7 11.2c.9.7 1.4 1.6 1.5 2.8h4.4c.1-1.2.6-2.1 1.5-2.8A6.2 6.2 0 0 0 12 2.8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M9.6 19.4h4.8M10.6 22h2.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Hint</span> lights up a tile that wants to swap.</span> <span><span class="pill as-label"><svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>Reveal</span> shows whether the tiles you just tried are <span class="together"><span class="tint stay">sticky</span> or <span class="tint swap">swappy</span>.</span></span></p>
   <p><em>Tip: Try saying the words out loud!</em></p>
   <p class="fine">Inspired by <a href="https://en.wikipedia.org/wiki/Spoonerism" target="_blank" rel="noopener">spoonerisms</a>. A game by Zack Abrams.</p>
   <button class="pill primary full" type="button" data-close="help-dialog">Play</button>
