@@ -166,7 +166,7 @@ function build(save = true) {
   const p = puzzle(), s = state(), solvedIds = new Set(s.solved.flat());
   busy = false; picked = null; lastSwap = null; lastWrong = null; homeOf.clear();
   syncClocks();
-  $('category').textContent = p.category; $('level').textContent = p.difficulty; $('level').dataset.level = p.difficulty.toLowerCase();
+  $('category').textContent = p.category; $('level').hidden = !p.difficulty; $('level').textContent = p.difficulty ?? ''; $('level').dataset.level = (p.difficulty ?? '').toLowerCase();
   $('count').textContent = `${board + 1} / ${puzzles.length}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
   $('prev').disabled = board === 0; $('next').disabled = board === puzzles.length - 1;
   const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url);

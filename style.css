@@ -102,9 +102,7 @@ button{font:inherit;color:inherit}
 .cat{display:flex;align-items:center;gap:9px;min-width:0}
 .cat strong{font:700 19px/1.2 Georgia,"Times New Roman",serif;white-space:nowrap}
 .chip{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid}
-.chip[data-level=easy]{color:var(--easy);background:var(--easy-bg);border-color:var(--easy-line)}
-.chip[data-level=medium]{color:var(--medium);background:var(--medium-bg);border-color:var(--medium-line)}
-.chip[data-level=hard]{color:var(--hard);background:var(--hard-bg);border-color:var(--hard-line)}
+.chip[data-level=tricky]{color:var(--hard);background:var(--hard-bg);border-color:var(--hard-line)}
 .nav{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .nav button{width:34px;height:40px;padding:0;border:0;background:transparent;font-size:19px;cursor:pointer;border-radius:8px}
 .nav button:disabled{opacity:.3;cursor:default}
@@ -142,7 +140,7 @@ button{font:inherit;color:inherit}
   transition:rotate .25s,translate .16s,scale .16s,box-shadow .16s}
 /* Clues and hints tint a tile: amber means swap this letter, gray means leave it. */
 .tile[data-status=swap]{--tile-top:#fde6a8;--tile-mid:#f6cf6c;--tile-low:#e8b546;--tile-edge:#b0812a}
-.tile[data-status=stay]{--tile-top:#eef0f4;--tile-mid:#dfe2e9;--tile-low:#cdd2db;--tile-edge:#98a0b0;--tile-ink:#4a5263}
+.tile[data-status=stay]{--tile-top:#e6e6e4;--tile-mid:#d5d5d2;--tile-low:#c1c1bd;--tile-edge:#8f8f8a;--tile-ink:#4d4d49}
 .lifted{z-index:30}
 .tile.lifted,.lifted .tile,.tile.picked{cursor:grabbing;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(150,120,70,.25),0 calc(var(--s)*.07) 0 var(--tile-edge),calc(var(--s)*var(--lsx-k) + var(--lsx-px,0px)) calc(var(--s)*var(--lsy-k) + var(--lsy-px,0px)) calc(var(--s)*.5) var(--shadow-lift)}
 .tile.picked{translate:0 -6px}
