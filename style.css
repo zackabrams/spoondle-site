@@ -205,9 +205,9 @@ dialog p{margin:12px 0;line-height:1.5}
 .ex em{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .example b{color:var(--accent);text-decoration:underline;text-underline-offset:4px}
 .example strong{color:var(--accent)}
-/* One category per line. Like the rules, they shrink a touch on narrow phones to stay on one line. */
-.kinds{font-size:min(15px,3.6vw)}
-.kinds span{display:block;text-wrap:pretty}
+/* One statement per line (the categories; Hint and Show a clue). Like the rules, they shrink a touch on narrow phones. */
+.lines{font-size:min(15px,3.6vw)}
+.lines span{display:block;text-wrap:pretty}
 .fine{font-size:13px;color:var(--muted)}
 .fine a{color:var(--accent)}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
