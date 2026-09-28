@@ -83,7 +83,8 @@ function ensureStarted() { if (record().startedAt === null) startPuzzle(); }
 function updateStats() {
   const s = state(), plural = (n, word) => `${n} ${word}${n === 1 ? '' : word.endsWith('s') ? 'es' : 's'}`;
   $('timer').textContent = formatTime(elapsedMs(record()));
-  $('tally').textContent = [s.misses && plural(s.misses, 'miss'), s.hints && plural(s.hints, 'hint')].filter(Boolean).join(' · ');
+  // Reveals are stored as `misses` (their old name), so saved games keep their counts.
+  $('tally').textContent = [s.misses && plural(s.misses, 'reveal'), s.hints && plural(s.hints, 'hint')].filter(Boolean).join(' · ');
 }
 
 // ---------- sound: a short filtered click, like a plastic tile set down on a table ----------
@@ -321,10 +322,10 @@ function nope(wrong) {
   setTimeout(() => {
     const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
     if (!wrong) return say(['Those letters match.']);
-    // A wrong trade is free. Its clue costs a miss, and only once per trade.
+    // A wrong trade is free. Its clue counts as a reveal, and only once per trade.
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
-    say(clued ? ['Not an answer.'] : ['Not an answer.', pill('Show a clue (+1 miss)', showClue)]);
+    say(clued ? ['Not an answer.'] : ['Not an answer.', pill('Show a clue (+1 reveal)', showClue)]);
   }, 760);
 }
 function showClue() {
