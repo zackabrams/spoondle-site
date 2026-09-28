@@ -203,7 +203,13 @@ function sizeTiles() {
   const [left, right] = [0, 1].map(c => Math.max(...cards.filter(card => card.column === c).map(card => card.word.length)));
   const longest = Math.max(left, right);
   mat.style.setProperty('--mat-s', `${Math.min(50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
-  let size = Math.max(20, Math.min(46, Math.floor((shelf.clientWidth - 14 - 3 * (left + right - 2)) / (left + right))));
+  // On a wide screen the mat sits inside the table's width, between the columns, so leave room for it.
+  const t = shelf.getBoundingClientRect(), m = mat.getBoundingClientRect();
+  const between = m.left > t.left && m.right < t.right && m.top < t.bottom && m.bottom > t.top;
+  let size = between
+    ? Math.floor(((shelf.clientWidth - m.width - 72) / 2 - 3 * (longest - 1)) / longest)   // two equal sides around the mat
+    : Math.floor((shelf.clientWidth - 14 - 3 * (left + right - 2)) / (left + right));
+  size = Math.max(20, Math.min(46, size));
   shelf.style.setProperty('--shelf-s', `${size}px`);
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
 }
