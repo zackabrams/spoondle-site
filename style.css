@@ -215,27 +215,27 @@ dialog p{margin:12px 0;line-height:1.5}
 [data-theme=oak] .mat{--shadow:rgba(10,30,18,.55)}
 [data-theme=oak] .mat::before{content:"";position:absolute;inset:8px;border:1.6px dashed rgba(245,232,196,.6);border-radius:12px;pointer-events:none}
 [data-theme=oak] .slot:not(.full){border-color:rgba(245,232,196,.35)}
-[data-theme=oak] .tray{row-gap:0;column-gap:12px;padding:7px 14px 6px 40px;rotate:-1deg;border-radius:2px;
-  background:linear-gradient(90deg,transparent 30px,rgba(214,88,80,.5) 30px 31.5px,transparent 31.5px),repeating-linear-gradient(transparent 0 29px,rgba(120,160,205,.5) 29px 30px) 0 7px/100% calc(100% - 13px) no-repeat,var(--paper-tex),#fffcf2;
+[data-theme=oak] .tray{--row:30px;row-gap:0;column-gap:12px;padding:7px 14px 6px 40px;rotate:-1deg;border-radius:2px;
+  background:linear-gradient(90deg,transparent 30px,rgba(214,88,80,.5) 30px 31.5px,transparent 31.5px),repeating-linear-gradient(transparent 0 calc(var(--row) - 1px),rgba(120,160,205,.5) calc(var(--row) - 1px) var(--row)) 0 7px/100% calc(100% - 13px) no-repeat,var(--paper-tex),#fffcf2;
   box-shadow:0 1px 1px rgba(60,28,6,.14),0 10px 18px rgba(60,28,6,.32)}
-[data-theme=oak] .found{height:30px;padding:0;border:0;border-radius:0;background:transparent;justify-content:flex-start}
+[data-theme=oak] .found{height:var(--row);overflow:visible;padding:0;border:0;border-radius:0;background:transparent;justify-content:flex-start}
 [data-theme=oak] .found .answer{font:600 24px/1 "Caveat",cursive;color:#233c86;text-transform:none;letter-spacing:0}
 [data-theme=oak] .found.revealed .answer{color:#77736b;opacity:1}
 
 [data-theme=linen] .slot:not(.full){border-color:rgba(90,55,20,.35)}
-[data-theme=linen] .tray{row-gap:0;column-gap:14px;padding:13px 14px 6px;border-radius:3px;
-  background:linear-gradient(#e0625a,#e0625a) 0 9px/100% 1.5px no-repeat,repeating-linear-gradient(transparent 0 27px,rgba(92,142,196,.32) 27px 28px) 0 13px/100% calc(100% - 19px) no-repeat,#fffdf7;
+[data-theme=linen] .tray{--row:28px;row-gap:0;column-gap:14px;padding:13px 14px 6px;border-radius:3px;
+  background:linear-gradient(#e0625a,#e0625a) 0 9px/100% 1.5px no-repeat,repeating-linear-gradient(transparent 0 calc(var(--row) - 1px),rgba(92,142,196,.32) calc(var(--row) - 1px) var(--row)) 0 13px/100% calc(100% - 19px) no-repeat,#fffdf7;
   box-shadow:0 1px 2px rgba(80,60,30,.14),0 10px 22px rgba(80,60,30,.16)}
-[data-theme=linen] .found{height:28px;padding:0 2px;border:0;border-radius:0;background:transparent;justify-content:flex-start}
+[data-theme=linen] .found{height:var(--row);overflow:visible;padding:0 2px;border:0;border-radius:0;background:transparent;justify-content:flex-start}
 [data-theme=linen] .found .answer{font:500 14px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.14em;color:#2e2a24}
 
 [data-theme=lamp] .mat::before,[data-theme=lamp] .mat::after{content:"";position:absolute;border:1px solid rgba(222,184,106,.65);border-radius:12px;pointer-events:none}
 [data-theme=lamp] .mat::before{inset:6px}
 [data-theme=lamp] .mat::after{inset:9px;border-color:rgba(222,184,106,.32);border-radius:10px}
 [data-theme=lamp] .slot:not(.full){border-color:rgba(222,184,106,.3)}
-[data-theme=lamp] .tray{row-gap:0;column-gap:12px;padding:10px 16px;border-radius:6px;background:var(--chalk-tex),linear-gradient(170deg,#373c3f,#2a2e31);
+[data-theme=lamp] .tray{--row:30px;row-gap:0;column-gap:12px;padding:10px 16px;border-radius:6px;background:var(--chalk-tex),linear-gradient(170deg,#373c3f,#2a2e31);
   box-shadow:inset 0 0 0 6px #6d4b2c,inset 0 0 0 7px #4c321c,inset 0 8px 16px rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.55)}
-[data-theme=lamp] .found{height:30px;padding:0 4px;border:0;border-radius:0;background:transparent;justify-content:flex-start}
+[data-theme=lamp] .found{height:var(--row);overflow:visible;padding:0 4px;border:0;border-radius:0;background:transparent;justify-content:flex-start}
 [data-theme=lamp] .found .answer{font:700 24px/1 "Caveat",cursive;color:rgba(246,244,236,.9);text-shadow:0 0 1px rgba(255,255,255,.6);text-transform:none;letter-spacing:0}
 
 [data-theme=felt] body{box-shadow:inset 0 0 0 8px #5b361a,inset 0 0 0 9.5px #3b2210,inset 0 0 0 10.5px rgba(255,210,150,.18),inset 0 18px 26px rgba(0,0,0,.35)}
@@ -314,9 +314,9 @@ dialog p{margin:12px 0;line-height:1.5}
   [data-theme] .found{justify-content:center}
   .found{height:48px}
   .found .answer{font-size:22px}
-  [data-theme=oak] .found,[data-theme=lamp] .found{height:40px}
+  [data-theme=oak] .tray,[data-theme=lamp] .tray{--row:40px}
   [data-theme=oak] .found .answer,[data-theme=lamp] .found .answer{font-size:31px}
-  [data-theme=linen] .found{height:36px}
+  [data-theme=linen] .tray{--row:36px}
   [data-theme=linen] .found .answer{font-size:18px}
   [data-theme=felt] .found{height:48px}
   [data-theme=felt] .found .ch{max-width:32px;height:37px}
@@ -327,9 +327,9 @@ dialog p{margin:12px 0;line-height:1.5}
   .tray{width:min(100%,780px)}
   .found .answer{font-size:26px}
   .found{height:54px}
-  [data-theme=oak] .found,[data-theme=lamp] .found{height:46px}
+  [data-theme=oak] .tray,[data-theme=lamp] .tray{--row:46px}
   [data-theme=oak] .found .answer,[data-theme=lamp] .found .answer{font-size:36px}
-  [data-theme=linen] .found{height:40px}
+  [data-theme=linen] .tray{--row:40px}
   [data-theme=linen] .found .answer{font-size:21px}
   .clue,.message{font-size:16px}
 }
