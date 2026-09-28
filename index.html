@@ -26,9 +26,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=ketdiau1">
+<link rel="stylesheet" href="style.css?v=2g2hyaj9">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=xrugpig1","./progress.mjs":"./progress.mjs?v=2dj2945d","./puzzles.mjs":"./puzzles.mjs?v=9hyzy3hw","./seal.mjs":"./seal.mjs?v=1jphmj7k"}}</script>
-<script type="module" src="app.mjs?v=5suy9r2y"></script>
+<script type="module" src="app.mjs?v=sug1hu3t"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater." width="1734" height="907"></div>
@@ -60,7 +60,7 @@
   </div>
   <div class="bottom">
     <span class="stats"><span id="timer" role="timer" aria-label="Time">0:00</span><span id="tally"></span></span>
-    <span class="actions" id="actions"><button id="hint" class="text-btn" type="button">✦ Hint</button><button id="give-up" class="text-btn quiet" type="button">Give up</button></span>
+    <span class="actions" id="actions"><button id="hint" class="text-btn" type="button">✦ Hint</button><button id="give-up" class="text-btn" type="button">Give up</button></span>
   </div>
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title">

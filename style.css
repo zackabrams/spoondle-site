@@ -138,7 +138,7 @@ button{font:inherit;color:inherit}
   font:600 calc(var(--s)*.66)/1 "Rubik",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;text-shadow:0 1px 0 rgba(255,255,255,.7);
   /* The contact shadow falls the way the room's light does; Lamplight sets --tsx-px/--tsy-px per tile. */
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(150,120,70,.25),0 calc(var(--s)*.07) 0 var(--tile-edge),calc(var(--s)*var(--tsx-k) + var(--tsx-px,0px)) calc(var(--s)*var(--tsy-k) + var(--tsy-px,0px)) calc(var(--s)*.2) var(--shadow);
-  rotate:var(--r,0deg);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  rotate:var(--r,0deg);z-index:var(--tz,auto);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   transition:rotate .25s,translate .16s,scale .16s,box-shadow .16s}
 /* Clues and hints tint a tile: amber means swap this letter, gray means leave it. */
 .tile[data-status=swap]{--tile-top:#fde6a8;--tile-mid:#f6cf6c;--tile-low:#e8b546;--tile-edge:#b0812a}
@@ -146,7 +146,7 @@ button{font:inherit;color:inherit}
 .lifted{z-index:30}
 .tile.lifted,.lifted .tile,.tile.picked{cursor:grabbing;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(150,120,70,.25),0 calc(var(--s)*.07) 0 var(--tile-edge),calc(var(--s)*var(--lsx-k) + var(--lsx-px,0px)) calc(var(--s)*var(--lsy-k) + var(--lsy-px,0px)) calc(var(--s)*.5) var(--shadow-lift)}
 .tile.picked{translate:0 -6px}
-.tile.target{z-index:5;transition:translate .2s cubic-bezier(.2,1.25,.45,1),rotate .25s,scale .16s,box-shadow .16s}
+.tile.target{z-index:20;transition:translate .2s cubic-bezier(.2,1.25,.45,1),rotate .25s,scale .16s,box-shadow .16s}
 .solved .tile{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 calc(var(--s)*.07) 0 var(--tile-edge),0 0 0 2px var(--accent),0 6px 14px var(--shadow)}
 
 .side{display:contents}
@@ -168,11 +168,14 @@ button{font:inherit;color:inherit}
 .pill.primary{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
 .pill.full{width:100%;padding-block:13px}
 .bottom{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:14px}
-.stats{display:flex;gap:10px;font-variant-numeric:tabular-nums}
-#timer{color:var(--ink);font-weight:650}
-.actions{display:flex;gap:4px}
-.text-btn{border:0;background:transparent;padding:10px 8px;font-size:14px;font-weight:650;color:var(--accent);cursor:pointer;border-radius:8px}
-.text-btn.quiet{color:var(--muted)}
+/* The timer (and any misses and hints) wears the same finish as the buttons beside it. */
+.stats{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 15px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-ink);box-shadow:var(--btn-shadow);border-radius:999px;font-weight:650;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap}
+#tally{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;font-weight:500;opacity:.8}
+#tally:empty{display:none}
+.actions{display:flex;flex:none;gap:8px}
+/* Hint and Give up wear the same finish as the round buttons up top, so every table shows them clearly. */
+.text-btn{border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-ink);box-shadow:var(--btn-shadow);padding:8px 15px;font-size:14px;font-weight:650;line-height:1.2;white-space:nowrap;cursor:pointer;border-radius:999px}
+@media (max-width:400px){.stats,.text-btn{padding-inline:12px}.actions{gap:6px}}
 .text-btn:disabled{opacity:.4;cursor:default}
 
 dialog{width:calc(100% - 32px);max-width:420px;max-height:88dvh;overflow-y:auto;padding:22px 22px 24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);box-shadow:0 24px 70px var(--shadow)}

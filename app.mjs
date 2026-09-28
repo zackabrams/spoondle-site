@@ -574,17 +574,25 @@ function buildPicker() {
 // Lamplight: each tile's shadow falls away from the lamp hanging over the mat.
 let relightTimer = 0;
 function relight() { clearTimeout(relightTimer); relightTimer = setTimeout(lightTiles, RM ? 0 : 420); }
-function lampOffset(x, y, reach) {
-  const m = mat.getBoundingClientRect(), span = Math.max(innerHeight * .5, 300);
-  return [(x - (m.left + m.width / 2)) / span * reach, (y - (m.top + m.height * .45)) / span * reach];
+function lampOffset(x, y, reach, longest = Infinity) {
+  const m = mat.getBoundingClientRect(), span = Math.max(innerWidth, innerHeight, 600) * .5;
+  const dx = (x - (m.left + m.width / 2)) / span * reach, dy = (y - (m.top + m.height * .45)) / span * reach;
+  const length = Math.hypot(dx, dy), shrink = Math.min(1, longest / (length || 1));
+  return [dx * shrink, dy * shrink, length];   // the length before the cap still says which tile is farther
 }
 function lightTiles() {
   const tiles = document.querySelectorAll('.shelf .tile, .slot .tile');
-  if (theme() !== 'lamp') { for (const t of tiles) { t.style.removeProperty('--tsx-px'); t.style.removeProperty('--tsy-px'); } return; }
+  if (theme() !== 'lamp') { for (const t of tiles) for (const v of ['--tsx-px', '--tsy-px', '--tz']) t.style.removeProperty(v); return; }
+  const words = new Map();
   for (const t of tiles) {
-    const r = t.getBoundingClientRect(), [dx, dy] = lampOffset(r.left + r.width / 2, r.top + r.height / 2, 16);
+    const r = t.getBoundingClientRect(), [dx, dy, far] = lampOffset(r.left + r.width / 2, r.top + r.height / 2, 16, 12);
     t.style.setProperty('--tsx-px', `${dx.toFixed(1)}px`); t.style.setProperty('--tsy-px', `${(dy + 2).toFixed(1)}px`);
+    if (!words.has(t.parentNode)) words.set(t.parentNode, []);
+    words.get(t.parentNode).push([far, t]);
   }
+  // Each shadow falls away from the lamp, so within a word the tile farther from the lamp sits on top:
+  // a neighbor's shadow tucks under it instead of smudging its face.
+  for (const list of words.values()) list.sort((a, b) => a[0] - b[0]).forEach(([, t], i) => t.style.setProperty('--tz', i + 1));
 }
 $('theme').addEventListener('click', () => $('theme-dialog').showModal());
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
