@@ -309,4 +309,11 @@ dialog p{margin:12px 0;line-height:1.5}
   .side{grid-row:3;grid-column:1;justify-self:center;align-self:center;display:flex;flex-direction:column;gap:10px;width:400px}
   .mat{margin-top:0}
 }
+/* First visit only: the title card for a moment. Its navy is the card's own, so the picture has no edges.
+   On a tall phone it runs a little past the sides, trimming the card's empty margins so the words read bigger. */
+.splash{position:fixed;inset:0;z-index:100;overflow:hidden;background:#121927;transition:opacity .4s ease}
+.splash img{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(108vw,900px,calc((100dvh - 24px)*1734/907));max-width:none;height:auto;opacity:0;scale:.97;transition:opacity .5s ease,scale .8s cubic-bezier(.2,.8,.2,1)}
+.splash.shown img{opacity:1;scale:1}
+.splash.leaving{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion: reduce){.splash img{scale:1}}
 @media (prefers-reduced-motion: reduce){.tile,.word{transition:none}dialog[open]{animation:none}}

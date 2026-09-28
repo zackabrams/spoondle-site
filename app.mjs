@@ -620,5 +620,25 @@ window.addEventListener('storage', e => {
 setInterval(updateStats, 250);
 
 let helpSeen = true; try { helpSeen = localStorage.getItem('spoondle-help-seen-v2') !== null; } catch {}
-if (!helpSeen) $('help-dialog').showModal();
+// First visit: the title card holds for a moment (a tap or key skips it), then How to play opens over it as it fades.
+function welcome() {
+  const splash = $('splash');
+  return new Promise(done => {
+    if (splash.hidden) { done(); return; }
+    let left = false;
+    const leave = () => {
+      if (left) return;
+      left = true; splash.classList.add('leaving'); done();
+      setTimeout(() => splash.remove(), RM ? 0 : 450);
+    };
+    splash.addEventListener('pointerdown', leave);
+    addEventListener('keydown', leave, { once: true });
+    splash.querySelector('img').decode().then(() => {
+      requestAnimationFrame(() => splash.classList.add('shown'));
+      setTimeout(leave, RM ? 1400 : 2100);
+    }, leave);
+    setTimeout(() => { if (!splash.classList.contains('shown')) leave(); }, 2500);   // never wait long on a slow connection
+  });
+}
+if (!helpSeen) welcome().then(() => { $('help-dialog').showModal(); refreshClocks(); });
 buildPicker(); applyTheme(theme()); showSound(); build();
