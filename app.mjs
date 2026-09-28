@@ -85,8 +85,13 @@ function ensureStarted() { if (record().startedAt === null) startPuzzle(); }
 function updateStats() {
   const s = state(), plural = (n, word) => `${n} ${word}${n === 1 ? '' : word.endsWith('s') ? 'es' : 's'}`;
   $('timer').textContent = formatTime(elapsedMs(record()));
-  // Reveals are stored as `misses` (their old name), so saved games keep their counts.
-  $('tally').textContent = [s.misses && plural(s.misses, 'reveal'), s.hints && plural(s.hints, 'hint')].filter(Boolean).join(' · ');
+  // Hints and reveals are counted above the answers; reveals are stored as `misses` (their old name).
+  for (const [id, n, word] of [['use-hints', s.hints, 'hint'], ['use-reveals', s.misses, 'reveal']]) {
+    const el = $(id), was = +el.dataset.n;
+    el.lastChild.textContent = ` ${word}${n === 1 ? '' : 's'}`; el.querySelector('b').textContent = n; el.dataset.n = n;
+    el.classList.toggle('on', n > 0);
+    if (n > was && !RM) el.animate([{ scale: 1 }, { scale: 1.18 }, { scale: 1 }], { duration: 420, easing: 'ease-out' });
+  }
 }
 
 // ---------- sound: a short filtered click, like a plastic tile set down on a table ----------

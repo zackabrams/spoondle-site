@@ -26,9 +26,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=1yne0xy8">
+<link rel="stylesheet" href="style.css?v=2b1a8noo">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=xrugpig1","./progress.mjs":"./progress.mjs?v=2g8znd87","./puzzles.mjs":"./puzzles.mjs?v=2biaxq68","./seal.mjs":"./seal.mjs?v=1jphmj7k"}}</script>
-<script type="module" src="app.mjs?v=ebjnihaj"></script>
+<script type="module" src="app.mjs?v=165ttz02"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater." width="1734" height="907"></div>
@@ -47,6 +47,7 @@
     <nav class="nav" aria-label="Choose a puzzle"><button id="prev" type="button" aria-label="Previous puzzle">←</button><span id="count">1 / 9</span><button id="next" type="button" aria-label="Next puzzle">→</button></nav>
   </div>
   <div class="play-area" id="play-area">
+    <div class="usage" id="usage"><span class="use hint" id="use-hints"><i aria-hidden="true">✦</i><b>0</b> hints</span><span class="use reveal" id="use-reveals"><i aria-hidden="true"></i><b>0</b> reveals</span></div>
     <div class="tray" id="tray" aria-label="Answers found"></div>
     <p class="clue" id="clue" aria-live="polite"></p>
     <div class="shelf" id="shelf" aria-label="Words"></div>
