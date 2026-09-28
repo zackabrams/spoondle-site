@@ -76,10 +76,24 @@ export function hintTargets(puzzle, state) {
   const used = usedIds(puzzle, state);
   return puzzle.cards.filter(c => !used.has(c.id)).map(c => ({ id: c.id, index: swapIndex(puzzle, c.id) })).filter(t => !state.feedback[t.id]?.[t.index]);
 }
+// The card in the other column that a card makes its answer with.
+export function partnerOf(puzzle, id) {
+  const column = cardFor(puzzle, id).column;
+  return puzzle.cards.find(c => c.column !== column && solvedAnswer(puzzle, [id, c.id]))?.id ?? null;
+}
+// Hints spread out rather than handing over an answer: first a word in the column with fewer lit words,
+// then any word, and a lit word's partner only once nothing else is left. (A Reveal's amber tile counts as lit.)
 export function revealHint(puzzle, state, random = Math.random) {
   const candidates = hintTargets(puzzle, state);
   if (!candidates.length) return null;
-  const chosen = { ...candidates[Math.floor(random() * candidates.length)], status: 'swap' };
+  const used = usedIds(puzzle, state);
+  const lit = puzzle.cards.filter(c => !used.has(c.id) && state.feedback[c.id]?.[swapIndex(puzzle, c.id)] === 'swap').map(c => c.id);
+  const partners = new Set(lit.map(id => partnerOf(puzzle, id)));
+  const [left, right] = [0, 1].map(column => lit.filter(id => state.columnById[id] === column).length);
+  const fewer = left === right ? null : left < right ? 0 : 1;
+  const apart = candidates.filter(t => !partners.has(t.id));
+  const pool = [apart.filter(t => state.columnById[t.id] === fewer), apart, candidates].find(p => p.length);
+  const chosen = { ...pool[Math.floor(random() * pool.length)], status: 'swap' };
   state.feedback[chosen.id] ??= {};
   state.feedback[chosen.id][chosen.index] = chosen.status;
   state.hints++;

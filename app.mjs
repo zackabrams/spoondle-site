@@ -148,9 +148,10 @@ function makeWord(card) {
 }
 // Clues and hints color the original tiles: amber for a letter to swap, gray for one to leave.
 function paintFeedback() {
-  const feedback = state().feedback;
+  const feedback = state().feedback, solved = new Set(state().solved.flat());
   for (const t of document.querySelectorAll('.tile[data-card]')) {
-    const status = feedback[t.dataset.card]?.[t.dataset.index];
+    // A solved pair drops its hint and reveal colors, so the answer glows evenly.
+    const status = solved.has(t.dataset.card) ? null : feedback[t.dataset.card]?.[t.dataset.index];
     if (status) t.dataset.status = status; else delete t.dataset.status;
     t.setAttribute('aria-label', t.dataset.letter + (status === 'swap' ? ', swap this letter' : status === 'stay' ? ', leave this letter' : ''));
   }
@@ -365,6 +366,7 @@ function showClue() {
 }
 function solve(hit, [first, second]) {
   chime(); first.classList.add('solved'); second.classList.add('solved');
+  for (const t of [...first.children, ...second.children]) delete t.dataset.status;
   setTimeout(() => {
     const tiles = [...first.children, ...second.children], merged = document.createElement('div');
     merged.className = 'word merged solved';
