@@ -657,18 +657,22 @@ async function playDemo(card, run) {
   const alive = () => run === demoRun && $('help-dialog').open, script = demoScript(card);
   for (let k = 0; alive(); k = (k + 1) % script.length) {
     const ex = script[k], { stage, rows: [top, bottom], s } = demoWords(card, ex);
-    stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
-    await demoPause(900); if (!alive()) return;
+    stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
+    await demoPause(1500); if (!alive()) return;   // time to read the two words
+    // The two letters that trade light up amber first, the same color a hint uses in the game.
     const x = top.children[ex.a.at], y = bottom.children[ex.b.at];
-    await demoMove([x, y], () => { const m = document.createComment(''); x.replaceWith(m); y.replaceWith(x); m.replaceWith(y); }, 600, s * .5);
+    for (const t of [x, y]) { t.dataset.status = 'swap'; t.animate([{ scale: 1 }, { scale: 1.14 }, { scale: 1 }], { duration: 500, easing: 'ease-out' }); }
+    await demoPause(1000); if (!alive()) return;
+    await demoMove([x, y], () => { const m = document.createComment(''); x.replaceWith(m); y.replaceWith(x); m.replaceWith(y); }, 850, s * .5);
+    delete x.dataset.status; delete y.dataset.status;
     top.classList.add('solved'); bottom.classList.add('solved');
-    await demoPause(600); if (!alive()) return;
+    await demoPause(1000); if (!alive()) return;
     const [first, second] = ex.backwards ? [bottom, top] : [top, bottom], tiles = [...first.children, ...second.children];
     const answer = document.createElement('div'); answer.className = 'word solved'; answer.style.cssText = top.style.cssText;
-    await demoMove(tiles, () => { answer.append(...first.children); if (ex.answer.includes(' ')) answer.append(makeGap()); answer.append(...second.children); stage.replaceChildren(answer); }, 650);
+    await demoMove(tiles, () => { answer.append(...first.children); if (ex.answer.includes(' ')) answer.append(makeGap()); answer.append(...second.children); stage.replaceChildren(answer); }, 850);
     if (ex.backwards) card.querySelector('.demo-note').textContent = 'Backwards!';
-    await demoPause(1700); if (!alive()) return;
-    await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).finished.catch(() => {});
+    await demoPause(3000); if (!alive()) return;   // and time to read the answer
+    await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.catch(() => {});
     stage.getAnimations().forEach(a => a.cancel());
   }
 }
