@@ -149,10 +149,8 @@ button{font:inherit;color:inherit}
 
 .side{display:contents}
 .mat{position:relative;display:grid;gap:12px;padding:18px 14px;border-radius:20px;background:var(--mat-art);border:1px solid var(--mat-edge);box-shadow:var(--mat-shadow);transition:box-shadow .16s}
-/* Upright, the mat sits above the words, like a board above your rack, with room below it to pull a word back. */
-.mat{order:1}
-.message{order:2}
-.shelf{order:3;margin-top:clamp(10px,4.5dvh,40px)}
+/* Breathing room between the table's words and the mat, so there's space to pull a word back. */
+.mat{margin-top:clamp(10px,4.5dvh,40px)}
 .mat.ready{box-shadow:var(--mat-shadow),0 0 0 3px var(--accent)}
 .slot{min-height:calc(var(--mat-s,50px) + 20px);display:flex;align-items:center;justify-content:center;border-radius:12px;border:1.5px dashed var(--line)}
 .slot.full{border-color:transparent}
@@ -175,7 +173,7 @@ button{font:inherit;color:inherit}
 .actions{display:flex;flex:none;gap:8px}
 /* Hint and Give up wear the same finish as the round buttons up top, so every table shows them clearly. */
 .text-btn{border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-ink);box-shadow:var(--btn-shadow);padding:8px 15px;font-size:14px;font-weight:650;line-height:1.2;white-space:nowrap;cursor:pointer;border-radius:999px}
-@media (max-width:400px){.stats,.text-btn{padding-inline:12px}.actions{gap:6px}}
+@media (max-width:400px){.stats,.text-btn{padding-inline:12px}.actions{gap:6px}.message .pill{padding-inline:14px}}
 .text-btn:disabled{opacity:.4;cursor:default}
 
 dialog{width:calc(100% - 32px);max-width:420px;max-height:88dvh;overflow-y:auto;padding:22px 22px 24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);box-shadow:0 24px 70px var(--shadow)}
@@ -270,21 +268,20 @@ dialog p{margin:12px 0;line-height:1.5}
   .mat{gap:8px;padding:10px 12px;border-radius:16px}
   .slot{min-height:calc(var(--mat-s,50px) + 8px)}
   .found{height:36px}
-  .message{min-height:26px;font-size:13px}
+  .message{min-height:36px;font-size:13px}   /* room for a pill, so Show a clue never shifts the layout */
   .bottom{flex:none}
   
   #share-text{font-size:16px}
   dialog{width:calc(100% - 20px);padding-inline:16px}
 }
 @media (max-width:600px) and (max-height:650px){
-  .shelf{margin-top:clamp(6px,2dvh,14px)}
+  .mat{margin-top:clamp(6px,2dvh,14px)}
   .app{gap:5px;padding-block:max(5px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-bottom))}
   .play-area{gap:5px}
   .shelf{row-gap:4px}
   .mat{gap:5px;padding:7px 10px}
   .mat .word{--s:min(var(--mat-s,50px),42px)}
   .slot{min-height:50px}
-  .message{min-height:22px}
 }
 /* A phone turned sideways: still one screen, with the table on the left and the mat on the right.
    The timer and buttons sit under the mat, so the table gets the whole height of its side. */
@@ -294,7 +291,7 @@ dialog p{margin:12px 0;line-height:1.5}
   .board-bar{grid-column:2}
   .play-area{grid-column:1 / -1;grid-row:2 / 4;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:6px 32px}
   .tray,.clue,.shelf{grid-column:1}
-  .shelf{align-self:start;margin-top:0}
+  .shelf{align-self:start}
   .side{grid-column:2;grid-row:1 / -1;display:flex;flex-direction:column;justify-content:center;gap:6px;padding-bottom:28px}
   .mat{margin-top:0}
   .start-overlay{grid-column:1;grid-row:1 / -1}
@@ -306,7 +303,7 @@ dialog p{margin:12px 0;line-height:1.5}
   .play-area{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-block:auto}
   .bottom{margin-top:0}
   .tray{width:min(100%,520px);justify-self:center}
-  .shelf{grid-row:3;grid-column:1;margin-top:0;grid-template-columns:minmax(0,1fr) 400px minmax(0,1fr);gap:16px 36px}
+  .shelf{grid-row:3;grid-column:1;grid-template-columns:minmax(0,1fr) 400px minmax(0,1fr);gap:16px 36px}
   .home:nth-child(odd){grid-column:1;justify-self:end}
   .home:nth-child(even){grid-column:3;justify-self:start}
   .side{grid-row:3;grid-column:1;justify-self:center;align-self:center;display:flex;flex-direction:column;gap:10px;width:400px}

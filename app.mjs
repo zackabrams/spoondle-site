@@ -279,8 +279,11 @@ const inside = (r, x, y, pad = 0) => x >= r.left - pad && x <= r.right + pad && 
 const wordOn = side => slots[side]?.querySelector('.word') ?? null;
 const text = w => [...w.children].map(t => t.dataset.letter).join('');
 function syncSlots() { slots.forEach(slot => slot.classList.toggle('full', !!slot.querySelector('.word'))); }
-function markHome(word, empty) {
-  const home = homeOf.get(word); home.classList.toggle('empty', empty);
+// Once three answers are found, the last two words are the only pair left: they stay on the mat,
+// with no outline to call them back to.
+const lastPair = () => record().finishedAt === null && state().solved.length === puzzle().answers.length - 1;
+function markHome(word, away) {
+  const home = homeOf.get(word), empty = away && !lastPair(); home.classList.toggle('empty', empty);
   if (empty) { home.tabIndex = 0; home.setAttribute('role', 'button'); home.setAttribute('aria-label', `Put ${text(word)} back`); }
   else { home.removeAttribute('tabindex'); home.removeAttribute('role'); home.removeAttribute('aria-label'); }
 }
@@ -297,6 +300,7 @@ function placeWord(word, lifted = null) {
   clack('place'); lastWrong = null; say();
 }
 function sendHome(word, lifted = null) {
+  if (lastPair()) { if (lifted) snapBack(lifted); return; }
   if (picked) { picked.classList.remove('picked'); picked = null; }
   flip([word], () => { homeOf.get(word).append(word); markHome(word, false); syncSlots(); }, { lifted });
   clack('place', .8); lastWrong = null; say();
@@ -358,6 +362,7 @@ function solve(hit, [first, second]) {
 function placeLastPair(delay = 0) {
   const r = record();
   if (r.startedAt === null || r.finishedAt !== null || state().solved.length !== puzzle().answers.length - 1) return;
+  for (const w of homeOf.keys()) if (w.closest('.slot')) markHome(w, true);   // a word already on the mat loses its outline
   const waiting = [...homeOf.keys()].filter(w => !homeOf.get(w).classList.contains('done') && !w.closest('.slot'));
   waiting.forEach((w, i) => setTimeout(() => {
     if (busy || drag || !w.isConnected || w.closest('.slot')) return;
