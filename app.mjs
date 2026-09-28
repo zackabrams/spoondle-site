@@ -676,7 +676,7 @@ async function playDemo(card, run) {
     const [first, second] = ex.backwards ? [bottom, top] : [top, bottom], tiles = [...first.children, ...second.children];
     const answer = document.createElement('div'); answer.className = 'word solved'; answer.style.cssText = top.style.cssText;
     await demoMove(tiles, () => { answer.append(...first.children); if (ex.answer.includes(' ')) answer.append(makeGap()); answer.append(...second.children); stage.replaceChildren(answer); }, 850);
-    if (ex.backwards) card.querySelector('.demo-note').textContent = 'Backwards!';
+    if (ex.backwards) { const tag = document.createElement('span'); tag.textContent = 'Backwards!'; card.querySelector('.demo-note').replaceChildren(tag); }
     await demoPause(3000); if (!alive()) return;   // and time to read the answer
     await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.catch(() => {});
     stage.getAnimations().forEach(a => a.cancel());
