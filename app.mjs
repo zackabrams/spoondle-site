@@ -659,12 +659,13 @@ async function playDemo(card, run) {
     const ex = script[k], { stage, rows: [top, bottom], s } = demoWords(card, ex);
     stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
     await demoPause(1500); if (!alive()) return;   // time to read the two words
-    // The two letters that trade light up amber first, the same color a hint uses in the game.
-    const x = top.children[ex.a.at], y = bottom.children[ex.b.at];
-    for (const t of [x, y]) { t.dataset.status = 'swap'; t.animate([{ scale: 1 }, { scale: 1.14 }, { scale: 1 }], { duration: 500, easing: 'ease-out' }); }
+    // Lit like a clue first: the two letters that trade go amber (swappy), the rest go gray (sticky).
+    const x = top.children[ex.a.at], y = bottom.children[ex.b.at], all = [...top.children, ...bottom.children];
+    for (const t of all) t.dataset.status = t === x || t === y ? 'swap' : 'stay';
+    for (const t of [x, y]) t.animate([{ scale: 1 }, { scale: 1.14 }, { scale: 1 }], { duration: 500, easing: 'ease-out' });
     await demoPause(1000); if (!alive()) return;
     await demoMove([x, y], () => { const m = document.createComment(''); x.replaceWith(m); y.replaceWith(x); m.replaceWith(y); }, 850, s * .5);
-    delete x.dataset.status; delete y.dataset.status;
+    for (const t of all) delete t.dataset.status;
     top.classList.add('solved'); bottom.classList.add('solved');
     await demoPause(1000); if (!alive()) return;
     const [first, second] = ex.backwards ? [bottom, top] : [top, bottom], tiles = [...first.children, ...second.children];
