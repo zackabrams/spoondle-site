@@ -202,6 +202,8 @@ function build(save = true) {
   for (let i = 0; i < p.answers.length; i++) { const f = document.createElement('div'); f.className = 'found'; tray.append(f); }
   s.solved.forEach((ids, i) => fillFound(tray.children[i], solvedAnswer(p, ids).label, i >= s.solved.length - s.revealed));
   slots = [0, 1].map(() => { const slot = document.createElement('div'); slot.className = 'slot'; mat.append(slot); return slot; });
+  const turn = document.createElement('button'); turn.type = 'button'; turn.className = 'mat-flip'; turn.setAttribute('aria-label', 'Swap which word is on top');
+  turn.innerHTML = icon('<path d="M8 4v15M4.5 7.5 8 4l3.5 3.5M16 20V5M12.5 16.5 16 20l3.5-3.5"/>'); turn.addEventListener('click', flipMat); mat.append(turn);
   paintFeedback(); showStartGate();
   if (save) persist();
   updateStats(); say();
@@ -313,7 +315,15 @@ function domSwap(a, b) { const m = document.createComment(''); a.replaceWith(m);
 const inside = (r, x, y, pad = 0) => x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
 const wordOn = side => slots[side]?.querySelector('.word') ?? null;
 const text = w => [...w.children].map(t => t.dataset.letter).join('');
-function syncSlots() { slots.forEach(slot => slot.classList.toggle('full', !!slot.querySelector('.word'))); }
+function syncSlots() {
+  slots.forEach(slot => slot.classList.toggle('full', !!slot.querySelector('.word')));
+  mat.classList.toggle('pair', slots.every(slot => slot.querySelector('.word')));
+}
+// The flip button swaps which word sits on top, to read the pair the other way round. Only the view changes.
+function flipMat() {
+  const tiles = slots.flatMap(slot => [...slot.querySelectorAll('.tile')]);
+  flip(tiles, () => mat.classList.toggle('flipped')); clack('pick', .6);
+}
 // Once three answers are found, the last two words are the only pair left: they stay on the mat,
 // with no outline to call them back to.
 const lastPair = () => record().finishedAt === null && state().solved.length === puzzle().answers.length - 1;
@@ -651,9 +661,24 @@ $('relax').addEventListener('click', () => {
   if (record().finishedAt === null) say([relaxed ? 'Relax mode: no timer.' : 'Timer on.']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
-function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); }
+function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); cycleModes(true); }
+// How to play: the timer line flips between the two modes, as the header button does.
+let modeTimer = 0;
+function cycleModes(on) {
+  clearInterval(modeTimer); if (!on) return;
+  const box = $('mode-demo'), btn = box.firstElementChild, words = box.lastElementChild;
+  const modes = [[STOPWATCH, 'Be competitive with timer mode.'], [TEACUP, 'Take your time with relax mode.']];
+  let k = 0; btn.innerHTML = modes[0][0]; words.textContent = modes[0][1];
+  modeTimer = setInterval(async () => {
+    k ^= 1;
+    if (!RM) await Promise.all([btn.animate([{ transform: 'rotateY(0)' }, { transform: 'rotateY(90deg)' }], { duration: 170, easing: 'ease-in' }).finished,
+      words.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170 }).finished]).catch(() => {});
+    btn.innerHTML = modes[k][0]; words.textContent = modes[k][1];
+    if (!RM) { btn.animate([{ transform: 'rotateY(-90deg)' }, { transform: 'rotateY(0)' }], { duration: 200, easing: 'ease-out' }); words.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 }); }
+  }, 2800);
+}
 $('help').addEventListener('click', openHelp);
-$('help-dialog').addEventListener('close', () => { demoRun++; try { localStorage.setItem('spoondle-help-seen-v2', '1'); } catch {} refreshClocks(); });
+$('help-dialog').addEventListener('close', () => { demoRun++; cycleModes(false); try { localStorage.setItem('spoondle-help-seen-v2', '1'); } catch {} refreshClocks(); });
 // How to play: three example cards, flipped with a swipe or the arrows.
 const examples = $('example-track');
 const exampleShown = () => Math.round(examples.scrollLeft / (examples.clientWidth || 1));
