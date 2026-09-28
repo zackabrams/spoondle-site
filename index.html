@@ -24,12 +24,11 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script>/* Arriving from the old address (zackabrams.com/spoondle), the link carries that browser's saved puzzles and settings after the #. Keep any this address doesn't have yet. */try{const c=new URLSearchParams(location.hash.slice(1)).get('carry');if(c){for(const[k,v]of Object.entries(JSON.parse(c)))if(k.startsWith('spoondle-')&&typeof v==='string'&&localStorage.getItem(k)===null)localStorage.setItem(k,v);history.replaceState(null,'',location.pathname+location.search)}}catch{}</script>
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@500&family=Rubik:wght@600&display=swap">
-<link rel="stylesheet" href="style.css?v=18sr7qva">
+<link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=22fqicgr">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=xrugpig1","./progress.mjs":"./progress.mjs?v=2dj2945d","./puzzles.mjs":"./puzzles.mjs?v=9hyzy3hw","./seal.mjs":"./seal.mjs?v=1jphmj7k"}}</script>
-<script type="module" src="app.mjs?v=1uh8k8uv"></script>
+<script type="module" src="app.mjs?v=13bg0x28"></script>
 </head>
 <body>
 <div class="app">
@@ -49,8 +48,10 @@
     <div class="tray" id="tray" aria-label="Answers found"></div>
     <p class="clue" id="clue" aria-live="polite"></p>
     <div class="shelf" id="shelf" aria-label="Words"></div>
-    <div class="mat" id="mat" aria-label="Mat"></div>
-    <div class="message" id="message" role="status"></div>
+    <div class="side">
+      <div class="mat" id="mat" aria-label="Mat"></div>
+      <div class="message" id="message" role="status"></div>
+    </div>
     <div class="start-overlay" id="start-overlay">
       <button id="start" class="start-button" type="button">Start puzzle</button>
     </div>
@@ -76,7 +77,7 @@
     <button class="example-arrow" id="example-prev" type="button" aria-label="Previous examples" disabled>‹</button>
     <button class="example-arrow" id="example-next" type="button" aria-label="Next examples">›</button>
   </div>
-  <p><strong>Compound words</strong> are two words joined together. <strong>Proper nouns</strong> are people, places, and titles. <strong>Hidden words</strong> are ordinary words that split in two.</p>
+  <p class="kinds"><span><strong>Compound words</strong> are two words joined together.</span> <span><strong>Proper nouns</strong> are people, places, and titles.</span> <span><strong>Hidden words</strong> are ordinary words that split in two.</span></p>
   <p>Use the "Hint" button to reveal a tile that wants to swap. "Show a clue" will tell you if the tiles you chose are sticky or swappy.</p>
   <p>Have fun!</p>
   <p class="fine">Inspired by <a href="https://en.wikipedia.org/wiki/Spoonerism" target="_blank" rel="noopener">spoonerisms</a>. A game by Zack Abrams.</p>

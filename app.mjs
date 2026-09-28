@@ -94,7 +94,8 @@ const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
 const TABLE = icon('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
 function showSound() { $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
-function ctx() { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); return audio; }
+// Wake the audio whenever it isn't running: iOS leaves it 'interrupted', not 'suspended', after a call or an app switch.
+function ctx() { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state !== 'running') audio.resume().catch(() => {}); return audio; }
 function clack(kind = 'place', volume = 1) {
   // Phones buzz only once the player has touched the page; before that the browser refuses.
   try { if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(kind === 'pick' ? 4 : 9); } catch {}
@@ -182,23 +183,29 @@ function build(save = true) {
   for (let i = 0; i < p.answers.length; i++) { const f = document.createElement('div'); f.className = 'found'; tray.append(f); }
   s.solved.forEach((ids, i) => fillFound(tray.children[i], solvedAnswer(p, ids).label, i >= s.solved.length - s.revealed));
   slots = [0, 1].map(() => { const slot = document.createElement('div'); slot.className = 'slot'; mat.append(slot); return slot; });
-  paintFeedback(); sizeTiles();
-  if (record().startedAt === null) pileUp();
-  showStartGate();
+  paintFeedback(); showStartGate();
   if (save) persist();
   updateStats(); say();
+  sizeTiles();   // after the message line, which is taller on a finished board
+  if (record().startedAt === null) pileUp();
   placeLastPair(RM ? 0 : 250);
 }
 // Tiles as big as the room allows: the two table columns are each as wide as their longest word,
-// and on a phone, where everything shares one screen, they give back height if the bottom is pushed off.
+// and on a phone, where everything shares one screen, they give back height if the bottom is pushed off
+// (or, with the phone sideways, if the table runs past its half of the screen).
 function sizeTiles() {
-  const cards = puzzle().cards, app = shelf.closest('.app');
+  const cards = puzzle().cards, app = shelf.closest('.app'), area = $('play-area');
+  const tooTall = () => {
+    const bar = document.querySelector('.bottom').getBoundingClientRect(), table = shelf.getBoundingClientRect();
+    const hitsBar = r => r.left < bar.right && bar.left < r.right && r.bottom > bar.top + .5;
+    return app.scrollHeight > app.clientHeight || table.bottom > area.getBoundingClientRect().bottom + .5 || hitsBar(table) || hitsBar(message.getBoundingClientRect());
+  };
   const [left, right] = [0, 1].map(c => Math.max(...cards.filter(card => card.column === c).map(card => card.word.length)));
   const longest = Math.max(left, right);
   mat.style.setProperty('--mat-s', `${Math.min(50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
   let size = Math.max(20, Math.min(46, Math.floor((shelf.clientWidth - 14 - 3 * (left + right - 2)) / (left + right))));
   shelf.style.setProperty('--shelf-s', `${size}px`);
-  while (size > 20 && app.scrollHeight > app.clientHeight) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
+  while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
 }
 function goTo(index) {
   if (busy || index < 0 || index >= puzzles.length) return;
