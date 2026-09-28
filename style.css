@@ -149,8 +149,10 @@ button{font:inherit;color:inherit}
 
 .side{display:contents}
 .mat{position:relative;display:grid;gap:12px;padding:18px 14px;border-radius:20px;background:var(--mat-art);border:1px solid var(--mat-edge);box-shadow:var(--mat-shadow);transition:box-shadow .16s}
-/* Breathing room between the table's words and the mat, so there's space to pull a word back. */
-.mat{margin-top:clamp(10px,4.5dvh,40px)}
+/* Upright, the mat sits above the words, like a board above your rack, with room below it to pull a word back. */
+.mat{order:1}
+.message{order:2}
+.shelf{order:3;margin-top:clamp(10px,4.5dvh,40px)}
 .mat.ready{box-shadow:var(--mat-shadow),0 0 0 3px var(--accent)}
 .slot{min-height:calc(var(--mat-s,50px) + 20px);display:flex;align-items:center;justify-content:center;border-radius:12px;border:1.5px dashed var(--line)}
 .slot.full{border-color:transparent}
@@ -275,7 +277,7 @@ dialog p{margin:12px 0;line-height:1.5}
   dialog{width:calc(100% - 20px);padding-inline:16px}
 }
 @media (max-width:600px) and (max-height:650px){
-  .mat{margin-top:clamp(6px,2dvh,14px)}
+  .shelf{margin-top:clamp(6px,2dvh,14px)}
   .app{gap:5px;padding-block:max(5px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-bottom))}
   .play-area{gap:5px}
   .shelf{row-gap:4px}
@@ -292,7 +294,7 @@ dialog p{margin:12px 0;line-height:1.5}
   .board-bar{grid-column:2}
   .play-area{grid-column:1 / -1;grid-row:2 / 4;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:6px 32px}
   .tray,.clue,.shelf{grid-column:1}
-  .shelf{align-self:start}
+  .shelf{align-self:start;margin-top:0}
   .side{grid-column:2;grid-row:1 / -1;display:flex;flex-direction:column;justify-content:center;gap:6px;padding-bottom:28px}
   .mat{margin-top:0}
   .start-overlay{grid-column:1;grid-row:1 / -1}
@@ -304,7 +306,7 @@ dialog p{margin:12px 0;line-height:1.5}
   .play-area{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-block:auto}
   .bottom{margin-top:0}
   .tray{width:min(100%,520px);justify-self:center}
-  .shelf{grid-row:3;grid-column:1;grid-template-columns:minmax(0,1fr) 400px minmax(0,1fr);gap:16px 36px}
+  .shelf{grid-row:3;grid-column:1;margin-top:0;grid-template-columns:minmax(0,1fr) 400px minmax(0,1fr);gap:16px 36px}
   .home:nth-child(odd){grid-column:1;justify-self:end}
   .home:nth-child(even){grid-column:3;justify-self:start}
   .side{grid-row:3;grid-column:1;justify-self:center;align-self:center;display:flex;flex-direction:column;gap:10px;width:400px}
@@ -317,4 +319,4 @@ dialog p{margin:12px 0;line-height:1.5}
 .splash.shown img{opacity:1;scale:1}
 .splash.leaving{opacity:0;pointer-events:none}
 @media (prefers-reduced-motion: reduce){.splash img{scale:1}}
-@media (prefers-reduced-motion: reduce){.tile,.word{transition:none}dialog[open]{animation:none}}
+@media (prefers-reduced-motion: reduce){.tile,.word{transition-duration:.12s}.tile.target{transition-timing-function:ease-out}dialog[open]{animation:none}}

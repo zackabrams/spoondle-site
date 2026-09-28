@@ -5,7 +5,8 @@ import { STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatT
 const $ = id => document.getElementById(id);
 const shelf = $('shelf'), mat = $('mat'), tray = $('tray'), clue = $('clue'), message = $('message');
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const SPRING = 'cubic-bezier(.2,1.35,.45,1)', SNAP = RM ? 1 : 360;
+// With Reduce Motion on, tiles still slide (briefly, without the bounce) so a move stays readable; the big motion stays off.
+const SPRING = RM ? 'ease-out' : 'cubic-bezier(.2,1.35,.45,1)', SNAP = RM ? 200 : 360;
 // How far past the mat's edge a letter has to be pulled before its whole word comes along.
 const TEAR = 56;
 const CLUE_KEY = 'Yellow: swap this letter. Gray: leave it.';
@@ -318,7 +319,7 @@ function trade(a, b, lifted = null) {
 }
 function nope(wrong) {
   clack('nope', .7);
-  if (!RM) slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 380 }));
+  slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 380 }));
   setTimeout(() => {
     const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
     if (!wrong) return say(['Those letters match.']);
