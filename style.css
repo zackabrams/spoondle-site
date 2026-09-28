@@ -155,6 +155,8 @@ button{font:inherit;color:inherit}
 .word{--s:34px;--gap:4px;display:flex;gap:var(--gap);position:relative;transition:opacity .16s}
 .shelf .word{--s:var(--shelf-s,34px);--gap:3px}
 .word.leaving{opacity:.4}
+.shelf[data-dim="0"] .home[data-col="0"]>.word:not(.lifted,:focus-within),.shelf[data-dim="1"] .home[data-col="1"]>.word:not(.lifted,:focus-within){opacity:.38}
+@media (hover:hover){.shelf[data-dim] .home>.word:hover{opacity:1}}
 .gap{flex:none;width:calc(var(--s)*.45)}
 .tile{width:var(--s);height:var(--s);flex:none;display:grid;place-items:center;border-radius:calc(var(--s)*.17);
   background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));color:var(--tile-ink);

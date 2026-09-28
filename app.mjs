@@ -192,7 +192,7 @@ function build(save = true) {
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
   const columns = [0, 1].map(c => p.cards.filter(card => card.column === c));
   for (let i = 0; i < columns[0].length; i++) for (const column of columns) {
-    const home = document.createElement('div'); home.className = 'home'; home.style.setProperty('--n', column[i].word.length); const w = makeWord(column[i]);
+    const home = document.createElement('div'); home.className = 'home'; home.dataset.col = column[i].column; home.style.setProperty('--n', column[i].word.length); const w = makeWord(column[i]);
     home.append(w); homeOf.set(w, home); shelf.append(home);
     if (solvedIds.has(w.dataset.id)) home.classList.add('done');
     // Tapping a word's empty spot on the table calls it back from the mat.
@@ -318,6 +318,9 @@ const text = w => [...w.children].map(t => t.dataset.letter).join('');
 function syncSlots() {
   slots.forEach(slot => slot.classList.toggle('full', !!slot.querySelector('.word')));
   mat.classList.toggle('pair', slots.every(slot => slot.querySelector('.word')));
+  // With one word on the mat, its partner has to come from the other column, so the rest of this column fades back.
+  const lone = slots.filter(slot => slot.querySelector('.word'));
+  if (lone.length === 1) shelf.dataset.dim = slots.indexOf(lone[0]); else delete shelf.dataset.dim;
 }
 // The flip button swaps which word sits on top, to read the pair the other way round. Only the view changes.
 function flipMat() {
