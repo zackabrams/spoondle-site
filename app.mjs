@@ -713,6 +713,12 @@ $('confirm-give-up').addEventListener('click', giveUp);
 $('prev').addEventListener('click', () => goTo(board - 1));
 $('next').addEventListener('click', () => goTo(board + 1));
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => $(b.dataset.close).close()));
+// A click or tap outside a dialog (on the dimmed page behind it) closes it.
+for (const d of document.querySelectorAll('dialog')) d.addEventListener('click', e => {
+  if (e.target !== d) return;
+  const r = d.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+});
 document.addEventListener('visibilitychange', refreshClocks);
 window.addEventListener('pagehide', () => { pauseRecord(record()); persist(); });
 window.addEventListener('pageshow', e => { if (e.persisted) refreshClocks(); });
