@@ -413,6 +413,8 @@ dialog p{margin:10px 0;line-height:1.5}
 .controls{line-height:1.7}
 .controls>span+span{margin-top:10px}
 .as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
+/* Card table's buttons draw a double ring inside the edge; on the smaller How to play label it's drawn finer, with a little more room. */
+[data-theme=felt] .text-btn.as-label{padding:4px 11px;box-shadow:inset 0 0 0 2px #f2ead0,inset 0 0 0 3px rgba(28,90,64,.55),0 1px 3px rgba(0,0,0,.35)}
 /* In the game, Peek's soft fill sits on the table; here it sits on the dialog, so mix in the table's color to match. */
 .pill.soft.as-label{background:color-mix(in srgb,var(--panel) 50%,var(--table))}
 .together{white-space:nowrap}
