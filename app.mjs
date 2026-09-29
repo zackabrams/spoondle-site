@@ -1,6 +1,9 @@
 import { puzzles } from './puzzles.mjs';
 import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint } from './game.mjs';
-import { STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
+import { LAUNCH, iso, today, addDays, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
+import { access } from './access.mjs';
+import { summarize, TIME_BINS } from './stats.mjs';
+import { localDay, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
 
 const $ = id => document.getElementById(id);
 const shelf = $('shelf'), mat = $('mat'), tray = $('tray'), clue = $('clue'), message = $('message');
@@ -107,11 +110,13 @@ function showRelax() {
   const b = $('relax'); b.innerHTML = relaxed ? TEACUP : STOPWATCH; b.setAttribute('aria-pressed', String(relaxed));
   b.setAttribute('aria-label', relaxed ? 'Relax mode on (no timer)' : 'Timer on'); b.title = relaxed ? 'Relax mode: no timer' : 'Timer on';
   document.documentElement.classList.toggle('relaxed', relaxed);
+  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'The clock runs while you play.';
 }
 const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>');
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
+const GEAR = icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>');
 const TABLE = icon('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
-function showSound() { $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
+function showSound() { $('sound-note').textContent = soundOn ? 'Tiles click as you move them.' : 'Off.'; $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
 // Wake the audio whenever it isn't running: iOS leaves it 'interrupted', not 'suspended', after a call or an app switch.
 function ctx() { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state !== 'running') audio.resume().catch(() => {}); return audio; }
 function clack(kind = 'place', volume = 1) {
@@ -192,7 +197,7 @@ function build(save = true) {
   busy = false; picked = null; lastSwap = null; lastWrong = null; homeOf.clear();
   syncClocks();
   $('category').textContent = p.category; $('level').hidden = !p.difficulty; $('level').textContent = p.difficulty ?? ''; $('level').dataset.level = (p.difficulty ?? '').toLowerCase();
-  $('count').textContent = `${board + 1} / ${puzzles.length}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
+  $('count').textContent = `${monthDay(dayOf(board))}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
   $('prev').disabled = board === 0; $('next').disabled = board === puzzles.length - 1;
   const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url);
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
@@ -286,12 +291,19 @@ function say(parts = null) {
   const p = puzzle(), r = record(), s = state();
   message.replaceChildren(); relight();
   $('actions').hidden = r.finishedAt !== null;
+  // Once solved, the time shows in the solved line, so the bar with the clock steps aside to make room.
+  document.querySelector('.bottom').hidden = r.finishedAt !== null;
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
   if (r.finishedAt !== null) {
     const next = nextUnfinished();
-    const share = pill('Share', shareResult); share.classList.add('soft');
-    message.append(note(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`), share);
-    message.append(next >= 0 ? pill('Next puzzle', () => goTo(next), true) : note('That’s all nine. Thanks for playing!'));
+    // A daily game: once today's puzzle is done, share it, see how you're doing, or go back to an earlier day.
+    const done = note(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`);
+    const wait = document.createElement('span'); wait.className = 'countdown'; done.append(' ', wait); showCountdown(wait);
+    const share = pill('Share', shareResult, true);
+    const stats = pill('Stats', openStats); stats.classList.add('soft'); stats.insertAdjacentHTML('afterbegin', CHART);
+    const archive = pill('Archive', openArchive); archive.classList.add('soft'); archive.insertAdjacentHTML('afterbegin', CALENDAR);
+    const row = document.createElement('span'); row.className = 'done-actions'; row.append(share, stats, archive);
+    message.append(done, row);
     return;
   }
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
@@ -479,7 +491,7 @@ function flyToTray(merged, hit) {
     if (!RM) answer.animate([{ opacity: 0, scale: .85 }, { opacity: 1, scale: 1 }], { duration: 260, easing: 'ease-out' });
     busy = false; clack('place', .6);
     const done = record().finishedAt !== null;
-    $('count').textContent = `${board + 1} / ${puzzles.length}${done ? ' ✓' : ''}`;
+    $('count').textContent = `${monthDay(dayOf(board))}${done ? ' ✓' : ''}`;
     define(hit); say();
     if (done) celebrate(); else placeLastPair(RM ? 0 : 450);
   };
@@ -659,7 +671,7 @@ function applyTheme(id, save = false) {
   relight();
 }
 function buildPicker() {
-  $('theme').innerHTML = TABLE;
+  $('theme').innerHTML = GEAR;
   $('swatches').replaceChildren(...THEMES.map(([id, name]) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'swatch'; b.dataset.pick = id;
     const art = document.createElement('span'); art.className = 'swatch-art'; art.dataset.theme = id;
@@ -802,6 +814,121 @@ $('confirm-give-up').addEventListener('click', giveUp);
 $('prev').addEventListener('click', () => goTo(board - 1));
 $('next').addEventListener('click', () => goTo(board + 1));
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => $(b.dataset.close).close()));
+// ---------- archive: every day's puzzle on a calendar ----------
+const CALENDAR = icon('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/>');
+const CHART = icon('<path d="M5.5 20v-7M12 20V5M18.5 20v-10"/>');
+$('archive').innerHTML = CALENDAR; $('stats').innerHTML = CHART;
+function playOf(i) {
+  const r = records[i], s = r.state;
+  return { started: r.startedAt !== null, done: r.finishedAt !== null, gaveUp: s.revealed > 0, found: s.solved.length - s.revealed, total: puzzles[i].answers.length };
+}
+let shownMonth = null;
+function openArchive() {
+  const d = new Date(`${dayOf(board)}T12:00:00`); shownMonth = [d.getFullYear(), d.getMonth()];
+  drawArchive(); $('archive-dialog').showModal();
+}
+function drawArchive() {
+  const [y, m] = shownMonth, now = today(), cal = $('calendar');
+  $('month-title').textContent = monthTitle(y, m);
+  const lastDay = dayOf(puzzles.length - 1) < now ? dayOf(puzzles.length - 1) : now;
+  const launch = new Date(`${LAUNCH}T12:00:00`), latest = new Date(`${lastDay}T12:00:00`);
+  $('month-prev').disabled = y * 12 + m <= launch.getFullYear() * 12 + launch.getMonth();
+  $('month-next').disabled = y * 12 + m >= latest.getFullYear() * 12 + latest.getMonth();
+  const head = [...'SMTWTFS'].map(ch => { const h = document.createElement('span'); h.className = 'cal-head'; h.textContent = ch; return h; });
+  const cells = [], counts = { solved: 0, partial: 0, shown: 0, fresh: 0 };
+  for (let i = 0; i < new Date(y, m, 1).getDay(); i++) cells.push(document.createElement('span'));
+  for (let n = 1, last = new Date(y, m + 1, 0).getDate(); n <= last; n++) {
+    const day = iso(new Date(y, m, n)), index = indexOfDay(day, puzzles.length), open = access(day, now);
+    const cell = document.createElement('button'); cell.type = 'button'; cell.className = 'cal-day';
+    const num = document.createElement('span'); num.className = 'cal-num'; num.textContent = n; cell.append(num);
+    if (day === now) cell.classList.add('today');
+    // Only days the access rules open can be played (today that's every day that's out).
+    if (index < 0 || open !== 'open') { cell.disabled = true; cell.classList.add('none'); cells.push(cell); continue; }
+    const p = playOf(index), state = !p.started ? 'fresh' : !p.done ? 'partial' : p.gaveUp ? 'shown' : 'solved';
+    counts[state]++; cell.classList.add(state); if (index === board) cell.classList.add('current');
+    {
+      const pips = document.createElement('span'); pips.className = 'pips';
+      for (let k = 0; k < p.total; k++) { const d = document.createElement('i'); if (k < p.found) d.className = 'on'; pips.append(d); }
+      cell.append(pips);
+    }
+    const words = { solved: 'solved', partial: `${p.found} of ${p.total} found`, shown: 'answers shown', fresh: 'not played yet' }[state];
+    cell.setAttribute('aria-label', `${shortDate(day)}, ${puzzles[index].category}: ${words}`);
+    cell.addEventListener('click', () => goTo(index));
+    cells.push(cell);
+  }
+  cal.replaceChildren(...head, ...cells);
+  const parts = [counts.solved && `${counts.solved} solved`, counts.partial && `${counts.partial} in progress`, counts.shown && `${counts.shown} with answers shown`, counts.fresh && `${counts.fresh} to play`].filter(Boolean);
+  $('cal-summary').textContent = parts.join(' · ');
+}
+$('archive').addEventListener('click', openArchive);
+$('month-prev').addEventListener('click', () => { shownMonth = shownMonth[1] ? [shownMonth[0], shownMonth[1] - 1] : [shownMonth[0] - 1, 11]; drawArchive(); });
+$('month-next').addEventListener('click', () => { shownMonth = shownMonth[1] < 11 ? [shownMonth[0], shownMonth[1] + 1] : [shownMonth[0] + 1, 0]; drawArchive(); });
+
+// ---------- statistics ----------
+const CATEGORIES = [...new Set(puzzles.map(p => p.category))];
+function myPlays() {
+  return puzzles.flatMap((p, i) => {
+    const r = records[i], s = r.state; if (r.startedAt === null) return [];
+    return [{ day: dayOf(i), category: p.category, done: r.finishedAt !== null, onTime: r.finishedAt !== null && localDay(r.finishedAt) === dayOf(i), gaveUp: s.revealed > 0, ms: elapsedMs(r), hints: s.hints, reveals: s.misses, found: s.solved.length - s.revealed, total: p.answers.length }];
+  });
+}
+const tiles = text => `<span class="word stat-tiles">${[...String(text)].map(ch => `<span class="tile">${ch}</span>`).join('')}</span>`;
+const clock = ms => ms === null ? '–' : formatTime(ms);
+function drawStats() {
+  const now = today(), plays = myPlays(), st = summarize(plays, now);
+  // Days before your first puzzle stay blank rather than counting as missed.
+  const first = plays.reduce((min, p) => p.day < min ? p.day : min, now);
+  const most = Math.max(1, ...st.timeBins.map(b => b.count)), mine = st.todayTime ?? st.trend.at(-1)?.ms ?? null;
+  const mineBin = mine === null ? -1 : TIME_BINS.findIndex(([, max]) => mine < max);
+  const timeRows = st.timeBins.map((b, i) => `<div class="hbar${i === mineBin ? ' mine' : ''}"><span>${b.label}</span><span class="track"><span class="fill" style="--w:${b.count / most}"><b>${b.count}</b></span></span></div>`).join('');
+  // The trend: each recent solve's time, faster higher up, with the typical time as a dashed line.
+  const W = 320, H = 96, pts = st.trend, top = Math.max(60e3, ...pts.map(p => p.ms)) * 1.08;
+  const x = i => pts.length < 2 ? W / 2 : 10 + i * (W - 20) / (pts.length - 1), yv = ms => 8 + (ms / top) * (H - 16);
+  const line = pts.map((p, i) => `${x(i).toFixed(1)},${yv(p.ms).toFixed(1)}`).join(' ');
+  const trend = pts.length >= 3 ? `<svg class="trend" viewBox="0 0 ${W} ${H}" role="img" aria-label="Your last ${pts.length} solve times">
+      ${st.typicalTime ? `<line class="typical" x1="0" x2="${W}" y1="${yv(st.typicalTime)}" y2="${yv(st.typicalTime)}"/>` : ''}
+      <text class="faster" x="0" y="9">↑ faster</text><polyline points="${line}"/>${pts.map((p, i) => `<circle cx="${x(i)}" cy="${yv(p.ms)}" r="${i === pts.length - 1 ? 4.5 : 3}"${i === pts.length - 1 ? ' class="last"' : ''}/>`).join('')}
+    </svg><div class="axis"><span>${pts.length} solves back</span><span>- - typical ${clock(st.typicalTime)}</span><span>Latest ${clock(pts.at(-1)?.ms ?? null)}</span></div>` : `<p class="empty">Solve ${3 - pts.length === 1 ? 'one more puzzle' : `${3 - pts.length} more puzzles`} to see your trend.</p>`;
+  const helpMost = Math.max(1, ...st.helpBins.map(b => b.count));
+  const cols = st.helpBins.map(b => `<div class="vcol"><b>${b.count}</b><span class="stack" style="--h:${b.count / helpMost}"></span><span class="lab">${b.label}</span></div>`).join('');
+  // Twelve weeks of days, Sunday at the top, like a wall calendar turned on its side.
+  const start = addDays(now, -(7 * 11 + new Date(`${now}T12:00:00`).getDay()));
+  let grid = '';
+  for (let k = 0; k < 84; k++) { const day = addDays(start, k), kind = st.byDay.get(day); grid += `<i class="${day > now || day < first ? 'future' : kind ?? 'none'}${day === now ? ' today' : ''}" title="${shortDate(day)}"></i>`; }
+  const catRows = st.categories.map(c => `<div class="cat-row"><span class="name">${c.name}</span><span class="track"><span class="fill" style="--w:${c.played ? c.solved / c.played : 0}"></span></span><span class="num">${c.solved}/${c.played}</span><span class="num">${clock(c.typical)}</span></div>`).join('');
+  $('stats-body').innerHTML = `
+    <div class="stat-row">
+      <div class="stat">${tiles(st.played)}<span>Played</span></div>
+      <div class="stat">${tiles(st.winRate)}<span>Solved %</span></div>
+      <div class="stat">${tiles(st.streak)}<span>Streak</span></div>
+      <div class="stat">${tiles(st.bestStreak)}<span>Best streak</span></div>
+    </div>
+    <section><h3 class="section-label">Solve time</h3>
+      <p class="sub">Best <b>${clock(st.bestTime)}</b> · Typical <b>${clock(st.typicalTime)}</b>${st.todayTime !== null ? ` · Today <b>${clock(st.todayTime)}</b>` : ''}</p>
+      <div class="hbars">${timeRows}</div></section>
+    <section><h3 class="section-label">Getting faster?</h3>${trend}</section>
+    <section><h3 class="section-label">Hints and peeks per solve</h3>
+      <p class="sub"><b>${st.clean}</b> of ${st.solved} solved with no help at all.</p>
+      <div class="vcols">${cols}</div></section>
+    <section><h3 class="section-label">Last 12 weeks</h3>
+      ${plays.length ? `<div class="heat">${grid}</div>` : '<p class="empty">Your days fill in here as you play.</p>'}
+      <div class="heat-legend"><span><i class="clean"></i>Solved</span><span><i class="helped"></i>With help</span><span><i class="gaveup"></i>Answers shown</span><span><i class="none"></i>Missed</span><span><i class="today"></i>Today</span></div></section>
+    <section><h3 class="section-label">By category</h3>
+      <div class="cat-head"><span></span><span></span><span>Solved</span><span>Typical</span></div>${catRows}</section>`;
+}
+function openStats() { drawStats(); $('stats-dialog').showModal(); }
+$('stats').addEventListener('click', openStats);
+// The wait until tomorrow's puzzle, counting down while it's on screen.
+let countdownTimer = 0;
+function showCountdown(el) {
+  clearInterval(countdownTimer);
+  const tick = () => {
+    if (!el.isConnected) return clearInterval(countdownTimer);
+    const now = new Date(), midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
+    el.textContent = `Next puzzle in ${formatTime(midnight - now)}.`;
+  };
+  tick(); countdownTimer = setInterval(tick, 1000);
+}
 // A click or tap outside a dialog (on the dimmed page behind it) closes it.
 for (const d of document.querySelectorAll('dialog')) d.addEventListener('click', e => {
   if (e.target !== d) return;

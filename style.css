@@ -414,6 +414,7 @@ dialog p{margin:10px 0;line-height:1.5}
 .controls>span+span{margin-top:10px}
 .as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
 /* Card table's buttons draw a double ring inside the edge; on the smaller How to play label it's drawn finer, with a little more room. */
+[data-theme=felt] .icon-btn.as-icon{box-shadow:inset 0 0 0 1.5px #f2ead0,inset 0 0 0 2.5px rgba(28,90,64,.55),0 1px 2px rgba(0,0,0,.35)}
 [data-theme=felt] .text-btn.as-label{padding:4px 11px;box-shadow:inset 0 0 0 2px #f2ead0,inset 0 0 0 3px rgba(28,90,64,.55),0 1px 3px rgba(0,0,0,.35)}
 /* In the game, Peek's soft fill sits on the table; here it sits on the dialog, so mix in the table's color to match. */
 .pill.soft.as-label{background:color-mix(in srgb,var(--panel) 50%,var(--table))}
@@ -426,3 +427,98 @@ dialog p{margin:10px 0;line-height:1.5}
 @media (max-width:360px){.tools{gap:5px}.icon-btn{width:33px;height:33px}.brand{font-size:24px}}
 @media (prefers-reduced-motion: reduce){.shelf.finished::after{animation:none}.splash img{scale:1}.tint{animation:none}}
 @media (prefers-reduced-motion: reduce){.tile,.word{transition-duration:.12s}.tile.target{transition-timing-function:ease-out}dialog[open]{animation:none}}
+
+/* ---------- Settings, Archive and Statistics ---------- */
+/* Small capitals label a section, as the category does under How to play's examples. */
+.section-label{margin:20px 0 8px;font:700 11px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+dialog.sheet{max-width:440px}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.setting>span{display:grid;gap:2px}
+.setting small{color:var(--muted);font-size:13px}
+.setting .icon-btn{flex:none}
+.tile-face{background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 0 var(--tile-edge)}
+
+/* Archive: a month of days. Each playable day is a tile; pips under the date count the answers found. */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px}
+.month-nav strong{font:700 18px/1.2 Georgia,"Times New Roman",serif}
+.month-nav button{width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:19px;cursor:pointer}
+.month-nav button:disabled{opacity:.3;cursor:default}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.cal-head{text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.cal-day{position:relative;aspect-ratio:1;display:grid;place-content:center;justify-items:center;gap:4px;padding:0;border:0;border-radius:22%;background:transparent;color:var(--muted);font:600 15px/1 "Rubik",system-ui,sans-serif;cursor:pointer}
+.cal-day.none{cursor:default;opacity:.4}
+.cal-day:not(.none){background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));color:var(--tile-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 0 var(--tile-edge),0 5px 9px var(--shadow)}
+.cal-day:not(.none):hover{translate:0 -2px}
+.cal-day.solved{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 0 var(--tile-edge),0 0 0 2px var(--accent),0 3px 0 2px var(--accent),0 5px 9px var(--shadow)}
+.cal-day.shown{filter:grayscale(1);opacity:.62}
+.cal-day.today::after{content:"";position:absolute;inset:-5px;border:2px dashed var(--accent);border-radius:26%}
+.pips{display:flex;gap:2px}
+.pips i{width:5px;height:5px;border-radius:50%;box-shadow:inset 0 0 0 1.3px currentColor;opacity:.5}
+.pips i.on{background:currentColor;opacity:.85}
+.cal-lock svg{width:14px;height:14px}
+.cal-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-top:16px;font-size:12px;color:var(--muted)}
+.cal-legend span{display:inline-flex;align-items:center;gap:6px}
+.leg{width:13px;height:13px;border-radius:4px;background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:0 1.5px 0 var(--tile-edge)}
+.leg.solved{box-shadow:0 0 0 2px var(--accent)}
+.leg.shown{filter:grayscale(1);opacity:.62}
+.leg.today{background:none;box-shadow:none;border:2px dashed var(--accent)}
+.cal-legend .pips{color:var(--ink)}
+.cal-summary{margin:10px 0 0;text-align:center;font-size:13px;color:var(--muted)}
+
+/* Statistics */
+.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.stat{display:grid;justify-items:center;gap:8px;text-align:center}
+.stat>span{font-size:11.5px;line-height:1.2;color:var(--muted)}
+.stat-tiles{--s:clamp(18px,6vw,27px);--gap:2px}
+.stat-tiles .tile{cursor:default;rotate:0deg}
+#stats-body .sub{margin:0 0 10px;font-size:13px;color:var(--muted)}
+#stats-body .sub b{color:var(--ink)}
+.hbars{display:grid;gap:5px}
+.hbar{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.hbar .track{display:block}
+.hbar .fill{display:flex;align-items:center;justify-content:flex-end;box-sizing:border-box;width:calc(24px + (100% - 24px) * var(--w));height:20px;padding:0 7px;border-radius:5px;background:color-mix(in srgb,var(--muted) 28%,transparent);color:var(--ink);font-size:11.5px}
+.hbar.mine .fill{background:var(--accent);color:var(--accent-ink)}
+.hbar.mine>span:first-child{color:var(--ink);font-weight:700}
+.trend{display:block;width:100%;height:auto;overflow:visible}
+.trend polyline{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.trend circle{fill:var(--panel);stroke:var(--accent);stroke-width:2}
+.trend circle.last{fill:var(--accent)}
+.trend .typical{stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4}
+.trend .faster{fill:var(--muted);font:600 10px/1 system-ui,sans-serif}
+.axis{display:flex;justify-content:space-between;gap:8px;margin-top:4px;font-size:11px;color:var(--muted)}
+.empty{font-size:13px;color:var(--muted)}
+/* Hints and reveals: each column is a tall tile, so no help at all is the tallest one you want. */
+.vcols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;height:132px}
+.vcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;font-size:12px}
+.vcol .stack{width:min(46px,100%);height:calc(8px + 84px * var(--h));border-radius:7px;background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 0 var(--tile-edge)}
+.vcol .lab{color:var(--muted)}
+/* Twelve weeks, a column a week: a clean solve is a tile, a helped one wears a pip, answers shown is an empty outline. */
+.heat{display:grid;grid-template-rows:repeat(7,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px}
+.heat i,.heat-legend i{display:block;aspect-ratio:1;border-radius:22%;background:color-mix(in srgb,var(--line) 32%,transparent)}
+.heat i.clean,.heat i.helped,.heat-legend i.clean,.heat-legend i.helped{background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:0 1.5px 0 var(--tile-edge)}
+.heat i.helped,.heat-legend i.helped{background:radial-gradient(circle,var(--tile-ink) 0 17%,transparent 21%),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low))}
+.heat i.gaveup,.heat-legend i.gaveup{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.heat i.started{background:linear-gradient(to top,var(--tile-mid) 50%,color-mix(in srgb,var(--line) 32%,transparent) 50%)}
+.heat i.future{visibility:hidden}
+.heat i.today{outline:2px solid var(--accent);outline-offset:1px}
+.heat-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.heat-legend span{display:inline-flex;align-items:center;gap:6px}
+.heat-legend i{width:12px}
+.heat-legend i.today{background:none;outline:2px solid var(--accent);outline-offset:-1px}
+.cat-head,.cat-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 40px 44px;align-items:center;gap:8px}
+.cat-head{font-size:11px;color:var(--muted);text-align:right}
+.cat-row{padding:5px 0;font-size:13.5px}
+.cat-row .num{text-align:right;font-variant-numeric:tabular-nums}
+.cat-row .track{height:8px;border-radius:4px;background:color-mix(in srgb,var(--line) 40%,transparent);overflow:hidden}
+.cat-row .fill{display:block;width:calc(100% * var(--w));height:100%;border-radius:4px;background:var(--accent)}
+
+/* The solved line: the time and the wait for tomorrow, then Share, Stats and Archive. */
+.done-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;flex-basis:100%}
+.done-actions .pill{flex:none}
+/* The narrowest phones: a smaller title and closer arrows, so the category and the date share the line. */
+@media (max-width:360px){.cat strong{font-size:16px}.nav button{width:28px}}
+.done-actions .pill>svg{width:1.1em;height:1.1em;margin-right:.35em;vertical-align:-.2em}
+.message .note .countdown{color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* How to play points to Settings, with the gear inline. */
+.settings-note .icon-btn.as-icon{margin-inline:.15em .3em}
