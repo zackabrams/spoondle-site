@@ -268,7 +268,14 @@ dialog p{margin:10px 0;line-height:1.5}
 .lines.cats>span{text-wrap:balance}
 .lines.cats>span+span{margin-top:4px}
 .fine{font-size:13px;color:var(--muted)}
-.fine a{color:var(--accent)}
+/* Links in the fine print stay quiet: the text's own color, with a soft underline. */
+.fine a{color:inherit;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);text-underline-offset:.18em}
+.fine.privacy{margin:14px 0 0;line-height:1.45}
+#help-dialog .fine{line-height:1.4;margin-bottom:0}
+/* How to play may run a little taller than other sheets, so the buttons get room to breathe below the fine print. */
+#help-dialog{max-height:94dvh}
+#help-dialog .help-actions{margin-top:18px}
+.fine.privacy strong{color:var(--ink);font-weight:600}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
 #share-text{width:100%;margin:12px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--table);color:var(--ink);font:inherit;line-height:1.5;resize:vertical}
 .confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
@@ -528,4 +535,29 @@ dialog.sheet{max-width:440px}
 .message .note .countdown{color:var(--muted);font-variant-numeric:tabular-nums}
 
 /* How to play points to Settings, with the gear inline. */
-.settings-note .icon-btn.as-icon{margin-inline:.15em .3em}
+/* Centered on the words around it, not sitting on their baseline. */
+.settings-note .icon-btn.as-icon{margin-inline:.15em .3em;vertical-align:-3px}
+
+/* ---------- The practice puzzle's coach ---------- */
+.practicing .bottom .stats{visibility:hidden}
+.help-actions{display:grid;gap:10px}
+.coach{position:fixed;z-index:60;left:50%;top:auto;bottom:max(14px,env(safe-area-inset-bottom));translate:-50% 0;transition:top .3s ease;width:min(calc(100% - 24px),400px);display:grid;gap:8px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);box-shadow:0 14px 40px var(--shadow);font-size:15px;line-height:1.45}
+.coach[style*="top"]{bottom:auto}
+.coach.centered{top:50%;bottom:auto;translate:-50% -50%}
+.coach strong{font:700 20px/1.2 Georgia,"Times New Roman",serif}
+.coach p{margin:0;text-wrap:pretty}
+.coach-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.coach-actions:empty{display:none}
+/* The spotlight: everything else dims, and a ring pulses around what to touch next. Clicks pass straight through. */
+/* The dimming stays still; only a thin ring breathes, by opacity alone, so the browser never repaints the dim. */
+.coach-ring{position:fixed;z-index:55;left:0;top:0;border-radius:16px;pointer-events:none;box-shadow:0 0 0 200vmax rgba(8,12,24,.42)}
+.coach-ring::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:3px solid var(--accent);animation:coach-pulse 1.8s ease-in-out infinite;will-change:opacity}
+.coach-finger{position:fixed;z-index:58;left:0;top:0;width:32px;height:32px;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.35)}
+@keyframes coach-pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){.coach-ring::after{animation:none}.coach{transition:none}}
+.coach-lift{position:relative;z-index:56}
+.coach p .icon-btn.as-icon{margin-inline:.1em;vertical-align:-.35em}
+.coach-keys{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+/* Each icon centers on its item's first line, so a two-line item keeps its icon beside the start of the text. */
+.coach-keys li{display:flex;align-items:flex-start;gap:8px;line-height:20px}
+.coach-keys .icon-btn.as-icon{flex:none;margin:-3px 0 0;vertical-align:0}

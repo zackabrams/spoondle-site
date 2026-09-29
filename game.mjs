@@ -96,9 +96,13 @@ export function revealHint(puzzle, state, random = Math.random) {
   const fewer = left === right ? null : left < right ? 0 : 1;
   const apart = candidates.filter(t => !partners.has(t.id));
   const pool = [apart.filter(t => state.columnById[t.id] === fewer), apart, candidates].find(p => p.length);
-  const chosen = { ...pool[Math.floor(random() * pool.length)], status: 'swap' };
-  state.feedback[chosen.id] ??= {};
-  state.feedback[chosen.id][chosen.index] = chosen.status;
+  return lightSwap(puzzle, state, pool[Math.floor(random() * pool.length)].id);
+}
+// Lights a card's swap tile, as a hint. (The practice round aims its first hint at the tile it points to next.)
+export function lightSwap(puzzle, state, id) {
+  const chosen = { id, index: swapIndex(puzzle, id), status: 'swap' };
+  state.feedback[id] ??= {};
+  state.feedback[id][chosen.index] = chosen.status;
   state.hints++;
   return chosen;
 }

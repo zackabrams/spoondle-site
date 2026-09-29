@@ -1,9 +1,9 @@
-import { puzzles } from './puzzles.mjs';
-import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint } from './game.mjs';
+import { puzzles, tutorial } from './puzzles.mjs';
+import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint, lightSwap } from './game.mjs';
 import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
 import { access } from './access.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
-import { localDay, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
+import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
 
 const $ = id => document.getElementById(id);
 const shelf = $('shelf'), mat = $('mat'), tray = $('tray'), clue = $('clue'), message = $('message');
@@ -24,7 +24,9 @@ const latest = Math.max(0, Math.min(puzzles.length - 1, daysBetween(LAUNCH, toda
 // Open on today's puzzle, or on an earlier one named in the link (?p=).
 const requested = keys.indexOf(new URL(location.href).searchParams.get('p'));
 let board = requested >= 0 && requested <= latest ? requested : latest;
-const puzzle = () => puzzles[board], record = () => records[board], state = () => records[board].state;
+// While the practice puzzle is up, it stands in for today's (see startPractice).
+let practice = null;
+const puzzle = () => practice ? practice.puzzle : puzzles[board], record = () => practice ? practice.record : records[board], state = () => record().state;
 function persist() {
   saved.current = keys[board]; records.forEach((r, i) => { saved.records[keys[i]] = r; });
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
@@ -33,6 +35,7 @@ function persist() {
 // ---------- start each puzzle deliberately; pause its clock when it is not visible ----------
 function syncClocks() {
   const showing = !document.hidden && !$('help-dialog').open;
+  if (practice) { records.forEach(r => pauseRecord(r)); if (showing) resumeRecord(practice.record); else pauseRecord(practice.record); return; }
   records.forEach((r, i) => {
     if (i !== board || !showing || r.startedAt === null) { pauseRecord(r); return; }
     resumeRecord(r);
@@ -103,6 +106,7 @@ function updateStats() {
 let audio = null, soundOn = true;
 try { soundOn = localStorage.getItem('spoondle-sound') !== 'off'; } catch {}
 const icon = path => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+const FLIP = icon('<path d="M8 4v15M4.5 7.5 8 4l3.5 3.5M16 20V5M12.5 16.5 16 20l3.5-3.5"/>');
 // Relax mode's button shows the mode you're in: a stopwatch while timed, a teacup while relaxed.
 const STOPWATCH = icon('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M12 2.5V6M18.2 6.8l1.4-1.4"/>');
 const TEACUP = icon('<path d="M4 10h12.5v3a6 6 0 0 1-6 6h-.5a6 6 0 0 1-6-6z"/><path d="M16.5 11.2h1.3a2.6 2.6 0 0 1 0 5.2h-1.9"/><path d="M8 3.2c-.9 1.1.9 2.1 0 3.3M12 3.2c-.9 1.1.9 2.1 0 3.3"/><path d="M3 21.5h15"/>');
@@ -110,9 +114,9 @@ let relaxed = false;
 try { relaxed = localStorage.getItem('spoondle-relax') === 'on'; } catch {}
 function showRelax() {
   const b = $('relax'); b.innerHTML = relaxed ? TEACUP : STOPWATCH; b.setAttribute('aria-pressed', String(relaxed));
-  b.setAttribute('aria-label', relaxed ? 'Relax mode on (no timer)' : 'Timer on'); b.title = relaxed ? 'Relax mode: no timer' : 'Timer on';
+  b.setAttribute('aria-label', relaxed ? 'Game mode: relax. Switch to timer mode' : 'Game mode: timer. Switch to relax mode'); b.title = relaxed ? 'Relax mode' : 'Timer mode';
   document.documentElement.classList.toggle('relaxed', relaxed);
-  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'The clock runs while you play.';
+  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'Timer mode: the clock runs while you play.';
 }
 const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>');
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
@@ -199,9 +203,9 @@ function build(save = true) {
   busy = false; picked = null; lastSwap = null; lastWrong = null; homeOf.clear();
   syncClocks();
   $('category').textContent = p.category; $('level').hidden = !p.difficulty; $('level').textContent = p.difficulty ?? ''; $('level').dataset.level = (p.difficulty ?? '').toLowerCase();
-  $('count').textContent = `${monthDay(dayOf(board))}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
-  $('prev').disabled = board === 0; $('next').disabled = board >= latest;
-  const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url);
+  $('count').textContent = practice ? 'Practice' : `${monthDay(dayOf(board))}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
+  $('prev').disabled = !!practice || board === 0; $('next').disabled = !!practice || board >= latest;
+  if (!practice) { const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url); }
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
   delete shelf.dataset.dim;   // a new board starts with nothing on the mat, so no column is faded
   const columns = [0, 1].map(c => p.cards.filter(card => card.column === c));
@@ -220,7 +224,7 @@ function build(save = true) {
   s.solved.forEach((ids, i) => fillFound(tray.children[i], solvedAnswer(p, ids).label, i >= s.solved.length - s.revealed));
   slots = [0, 1].map(() => { const slot = document.createElement('div'); slot.className = 'slot'; mat.append(slot); return slot; });
   const turn = document.createElement('button'); turn.type = 'button'; turn.className = 'mat-flip'; turn.setAttribute('aria-label', 'Swap which word is on top');
-  turn.innerHTML = icon('<path d="M8 4v15M4.5 7.5 8 4l3.5 3.5M16 20V5M12.5 16.5 16 20l3.5-3.5"/>'); turn.addEventListener('click', flipMat); mat.append(turn);
+  turn.innerHTML = FLIP; turn.addEventListener('click', flipMat); mat.append(turn);
   paintFeedback(); showStartGate();
   if (save) persist();
   updateStats(); say();
@@ -254,6 +258,7 @@ function sizeTiles() {
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
 }
 function goTo(index) {
+  if (practice) endPractice();
   if (busy || index < 0 || index > latest) return;
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   const direction = Math.sign(index - board);
@@ -287,6 +292,7 @@ function revealPill() {
 // Words on the message line sit on the same soft highlight as a definition, so they read over any table.
 function note(text) { const n = document.createElement('span'); n.className = 'note'; n.textContent = text; return n; }
 function say(parts = null) {
+  queueMicrotask(coachUpdate);
   const done = record().finishedAt !== null;
   for (const el of [shelf, mat]) { el.classList.toggle('finished', done); el.classList.toggle('given-up', done && state().revealed > 0); }
   document.querySelectorAll('.tile.previewed').forEach(t => t.classList.remove('previewed'));
@@ -296,6 +302,7 @@ function say(parts = null) {
   // Once solved, the time shows in the solved line, so the bar with the clock steps aside to make room.
   document.querySelector('.bottom').hidden = r.finishedAt !== null;
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
+  if (r.finishedAt !== null && practice) { message.append(note(s.revealed ? 'Answers shown.' : 'Practice puzzle solved!')); return; }
   if (r.finishedAt !== null) {
     const next = nextUnfinished();
     // A daily game: once today's puzzle is done, share it, see how you're doing, or go back to an earlier day.
@@ -355,6 +362,7 @@ function syncSlots() {
 function flipMat() {
   const tiles = slots.flatMap(slot => [...slot.querySelectorAll('.tile')]);
   flip(tiles, () => mat.classList.toggle('flipped')); clack('pick', .6);
+  if (practice) { practice.flipped = true; coachUpdate(); }
 }
 // Once three answers are found, the last two words are the only pair left: they stay on the mat,
 // with no outline to call them back to.
@@ -368,6 +376,7 @@ function markHome(word, away) {
 // ---------- the rules: words go to the mat; letters trade between the two words there ----------
 // Each column keeps its own slot; a word dropped on the other slot turns the mat, so it lands where it was dropped.
 function placeWord(word, lifted = null, at = null) {
+  if (!coachAllowsWord(word)) { if (lifted) snapBack(lifted); return coachNudge(); }
   ensureStarted();
   const side = +word.dataset.col, old = wordOn(side), turn = !!at && at !== slots[side];
   if (old === word) { if (lifted) snapBack(lifted); return; }
@@ -385,6 +394,7 @@ function sendHome(word, lifted = null) {
   clack('place', .8); lastWrong = null; say();
 }
 function trade(a, b, lifted = null) {
+  if (!coachAllows(a, b)) { b.style.translate = ''; if (lifted) snapBack(lifted); return coachNudge(); }
   ensureStarted();
   const wa = a.parentNode, wb = b.parentNode;
   const ids = [wa.dataset.id, wb.dataset.id], positions = [+a.dataset.index, +b.dataset.index];
@@ -395,7 +405,7 @@ function trade(a, b, lifted = null) {
   setTimeout(() => {
     if (!hit) return nope({ ids, positions, unchanged });
     checkSwap(puzzle(), state(), ids, positions);
-    finishRecord(puzzle(), record(), saved.completionDays);
+    finishRecord(puzzle(), record(), practice ? [] : saved.completionDays);
     persist(); updateStats();
     solve(hit, hit.ids[0] === ids[0] ? [wa, wb] : [wb, wa]);
   }, 380);
@@ -493,7 +503,7 @@ function flyToTray(merged, hit) {
     if (!RM) answer.animate([{ opacity: 0, scale: .85 }, { opacity: 1, scale: 1 }], { duration: 260, easing: 'ease-out' });
     busy = false; clack('place', .6);
     const done = record().finishedAt !== null;
-    $('count').textContent = `${monthDay(dayOf(board))}${done ? ' ✓' : ''}`;
+    if (!practice) $('count').textContent = `${monthDay(dayOf(board))}${done ? ' ✓' : ''}`;
     define(hit); say();
     if (done) celebrate(); else placeLastPair(RM ? 0 : 450);
   };
@@ -509,7 +519,9 @@ function flyToTray(merged, hit) {
 function useHint() {
   if (busy) return;
   ensureStarted();
-  const hint = revealHint(puzzle(), state()); if (!hint) return;
+  // In the practice round, Hint waits for its own lesson, and that first hint always lights BUD's swap tile.
+  if (practice && coach.step !== 'hint' && !COACH[coach.step]?.free) return coachNudge();
+  const hint = coach.step === 'hint' ? lightSwap(puzzle(), state(), onTable('BUD').dataset.id) : revealHint(puzzle(), state()); if (!hint) return;
   paintFeedback(); persist(); updateStats(); clack('pick');
   const tile = document.querySelector(`.tile[data-card="${hint.id}"][data-index="${hint.index}"]`);
   if (tile && !RM) tile.animate([{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], { duration: 480, easing: 'ease-out' });
@@ -690,7 +702,7 @@ addEventListener('resize', () => { sizeTiles(); pileUp(); });
 $('relax').addEventListener('click', () => {
   relaxed = !relaxed; try { localStorage.setItem('spoondle-relax', relaxed ? 'on' : 'off'); } catch {}
   showRelax(); clack('pick', .6);
-  if (record().finishedAt === null) say([relaxed ? 'Relax mode: no timer.' : 'Timer on.']); else say();
+  if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock.' : 'Timer mode on.']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
 function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); cycleModes(true); }
@@ -922,6 +934,174 @@ window.addEventListener('storage', e => {
 });
 setInterval(updateStats, 250);
 
+// ---------- the practice puzzle: a guided first game ----------
+// A short board played for real, with a coach card, a spotlight on what to touch next, and a finger that
+// shows each drag. It never touches saved progress, stats or streaks, and Skip leaves at any point.
+const coach = { card: null, ring: null, finger: null, raf: 0, step: null };
+function startPractice() {
+  document.querySelectorAll('dialog[open]').forEach(d => d.close());
+  syncClocks(); persist();
+  practice = { puzzle: tutorial, record: freshRecord(tutorial), intro: true };
+  practice.record.startedAt = Date.now();
+  document.documentElement.classList.add('practicing');
+  build(false);
+}
+function endPractice() {
+  if (!practice) return;
+  practice = null;
+  document.documentElement.classList.remove('practicing');
+  try { localStorage.setItem('spoondle-practice-seen', '1'); } catch {}
+  for (const k of ['card', 'ring', 'finger']) { coach[k]?.remove(); coach[k] = null; }
+  document.querySelectorAll('.coach-lift').forEach(el => el.classList.remove('coach-lift'));
+  cancelAnimationFrame(coach.raf); coach.step = null; coach.box = null; coach.cardY = null;
+  build(false); refreshClocks();
+}
+const onTable = text => [...document.querySelectorAll('.word')].find(w => w.textContent === text && !w.classList.contains('merged'));
+function tileOf(word, letter) { return word && [...word.children].find(t => t.dataset.letter === letter); }
+// Three pairs, each with its lessons. FOOD CART: place one word from each column and trade a letter.
+// BED BUG: Hint before any word is picked (a hint can point anywhere), a word that isn't BUD's partner, putting it
+// back, and dropping on either spot. FAIR PLAY: the switch-places button, a wrong swap, then Peek. WELL DONE: all
+// theirs, with Hint and Peek on hand. Then a tour of the buttons up top.
+// The step follows from the board, plus two things the board can't show: the decoy was tried, and the mat was flipped.
+function coachStep() {
+  if (practice.intro) return 'intro';
+  if (record().finishedAt !== null) return 'done';
+  const s = state(), on = text => !!onTable(text)?.closest('.slot');
+  if (onTable('FOOT')) return !on('FOOT') ? 'left' : !on('CARD') ? 'right' : 'swap';
+  if (onTable('BUD')) {
+    if (!s.hints) return 'hint';
+    if (!on('BUD')) return 'hinted';
+    if (on(decoy()?.textContent)) { practice.tried = true; return 'putBack'; }
+    return !practice.tried ? 'decoy' : !on('BEG') ? 'partner' : 'swapHint';
+  }
+  if (onTable('FAIL')) {
+    if (!on('FAIL')) return 'third';
+    if (!on('PRAY')) return 'fourth';
+    if (!practice.flipped) return 'flip';
+    return s.misses ? 'finish' : lastWrong && peekPill() ? 'peek' : 'wrong';
+  }
+  return 'solo';
+}
+const COACH = {
+  intro: { title: 'Let’s play a practice round', text: 'A short puzzle to learn the moves. It won’t count toward your stats.', go: 'Let’s go' },
+  left: { text: 'Drag <b>FOOT</b> onto the mat.', from: () => onTable('FOOT'), to: () => mat, place: true },
+  right: { text: 'Now drag <b>CARD</b> onto the mat. A pair is always one word from each column.', from: () => onTable('CARD'), to: () => mat, place: true },
+  swap: { text: 'Trade one letter between them: drag the <b>T</b> onto the <b>D</b>.', from: () => tileOf(onTable('FOOT'), 'T'), to: () => tileOf(onTable('CARD'), 'D') },
+  hint: { text: '<b>FOOD CART!</b> Not sure where to start the next one? Tap <b>Hint</b>.', ring: () => $('hint'), lift: () => $('hint') },
+  hinted: { text: 'Hint lit up the <b>U</b> in <b>BUD</b>, so it’s a letter to swap. Drag BUD onto the mat.', from: () => onTable('BUD'), to: () => mat, place: true },
+  decoy: { text: () => `Which word goes with BUD? Try <b>${decoy().textContent}</b>.`, from: () => decoy(), to: () => mat, place: true },
+  putBack: { text: () => `No swap turns BUD and ${decoy().textContent} into an answer, so they aren’t a pair. Put ${decoy().textContent} back: drag it off the mat, or tap its empty spot.`, from: () => decoy(), to: () => homeOf.get(decoy()) },
+  partner: { text: 'Now try <b>BEG</b>. You can drop a word on either spot on the mat.', from: () => onTable('BEG'), to: () => mat, place: true },
+  swapHint: { text: 'Now trade the lit <b>U</b> for the <b>E</b>.', from: () => tileOf(onTable('BUD'), 'U'), to: () => tileOf(onTable('BEG'), 'E') },
+  third: { text: '<b>BED BUG!</b> Next, put <b>FAIL</b> back on the mat.', from: () => onTable('FAIL'), to: () => mat, place: true },
+  fourth: { text: 'And <b>PRAY</b>, from the other column.', from: () => onTable('PRAY'), to: () => mat, place: true },
+  flip: { text: `Tap <span class="icon-btn as-icon">${FLIP}</span> to switch which word is on top. It’s just to help you read: a right answer counts either way.`, ring: () => mat.querySelector('.mat-flip') },
+  wrong: { text: 'Now try a swap that won’t work: drag the <b>L</b> onto the <b>P</b>.', from: () => tileOf(onTable('FAIL'), 'L'), to: () => tileOf(onTable('PRAY'), 'P') },
+  peek: { text: 'Wrong swaps are free. Tap <b>Peek</b> to see which of those two letters should move.', ring: () => peekPill(), lift: () => peekPill() },
+  finish: { text: 'Peek lit up the <b>L</b>, so it should move. The <b>P</b> went gray, so it stays. Which letter in <b>PRAY</b> should the L trade with?', ring: () => mat, free: true },
+  solo: { text: '<b>FAIR PLAY!</b> The last pair moved onto the mat for you, and this one’s all yours. Hint and Peek are here if you need them.', ring: () => mat, free: true },
+  done: { title: 'You’re ready', text: () => `Every day brings a new puzzle with four answers.<br>About those buttons on top:<ul class="coach-keys">${[
+    ['help', 'Review the rules or replay this tutorial'], ['archive', 'Archive: access past puzzles'],
+    ['stats', 'Stats: review your prior performance'], ['theme', 'Settings: change game mode, toggle sound, or choose a new table theme']]
+    .map(([id, what]) => `<li><span class="icon-btn as-icon">${$(id).innerHTML}</span>${what}</li>`).join('')}</ul>`,
+    ring: () => document.querySelector('.top .tools'), center: true, go: 'Play today’s puzzle', alt: 'Pick a table' },
+};
+function coachUpdate() {
+  if (!practice) return;
+  const step = coachStep();
+  if (step === coach.step) return;
+  coach.step = step;
+  const c = COACH[step];
+  if (!coach.card) {
+    coach.card = document.createElement('div'); coach.card.className = 'coach'; coach.card.setAttribute('role', 'status');
+    coach.ring = document.createElement('div'); coach.ring.className = 'coach-ring'; coach.ring.hidden = true;
+    coach.finger = document.createElement('div'); coach.finger.className = 'coach-finger';
+    document.body.append(coach.ring, coach.finger, coach.card);
+    coach.raf = requestAnimationFrame(coachFrame);
+  }
+  coach.card.innerHTML = `${c.title ? `<strong>${c.title}</strong>` : ''}<p>${typeof c.text === 'function' ? c.text() : c.text}</p><div class="coach-actions">${c.alt ? `<button type="button" class="pill soft" data-coach="alt">${c.alt}</button>` : ''}${c.go ? `<button type="button" class="pill primary" data-coach="go">${c.go}</button>` : ''}${step === 'done' ? '' : '<button type="button" class="pill soft" data-coach="skip">Skip tutorial</button>'}</div>`;
+  coach.card.querySelector('[data-coach="go"]')?.addEventListener('click', () => {
+    if (step === 'intro') { practice.intro = false; coachUpdate(); } else endPractice();
+  });
+  coach.card.querySelector('[data-coach="skip"]')?.addEventListener('click', endPractice);
+  coach.card.querySelector('[data-coach="alt"]')?.addEventListener('click', () => { endPractice(); $('theme').click(); });
+  // Cards with nothing to point at, and the closing tour, sit in the middle of the screen.
+  coach.card.classList.toggle('centered', !!c.center || (!c.from && !c.ring));
+  // A button the step asks for (Hint, Peek) rises above the dimming too.
+  document.querySelectorAll('.coach-lift').forEach(el => el.classList.remove('coach-lift'));
+  c.lift?.()?.classList.add('coach-lift');
+  if (!RM) coach.card.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'ease-out' });
+  coach.started = performance.now();
+}
+const peekPill = () => message.querySelector('.pill.soft');
+// The word the coach offers BUD first: whichever of FAIL and PRAY sits in the other column.
+const decoy = () => ['PRAY', 'FAIL'].map(onTable).find(w => w && w.dataset.col !== onTable('BUD')?.dataset.col);
+// The practice round is on rails: each step takes only the move it shows, so Hint and Peek can't be skipped past.
+function coachAllows(a, b) {
+  if (!practice) return true;
+  const c = COACH[coach.step];
+  if (c.free) return true;
+  return !c.place && !!c.from && [a, b].includes(c.from()) && [a, b].includes(c.to());
+}
+function coachAllowsWord(word) {
+  if (!practice) return true;
+  const c = COACH[coach.step];
+  // Only the word the step asks for; the last pair (WELD and LONE) moves onto the mat by itself, in a free step.
+  if (c.place) return c.from() === word;
+  return !!c.free;
+}
+function coachNudge() {
+  clack('nope', .5);
+  if (!RM) coach.card?.animate([{ transform: 'none' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], { duration: 320 });
+}
+// Each frame, the spotlight glides after whatever to touch next and the finger acts out the drag from there.
+function coachFrame(now) {
+  coach.raf = requestAnimationFrame(coachFrame);
+  if (!practice || !coach.card) return;
+  const c = COACH[coach.step], from = c.from?.(), to = c.to?.(), ringEl = from ?? c.ring?.();
+  let r = ringEl?.getBoundingClientRect();
+  // A swap lights both tiles: the one to drag and the one to drop it on.
+  if (r && to && !c.place) { const t = to.getBoundingClientRect(), left = Math.min(r.left, t.left), top = Math.min(r.top, t.top); r = { left, top, width: Math.max(r.right, t.right) - left, height: Math.max(r.bottom, t.bottom) - top }; }
+  coach.ring.hidden = !r;
+  if (r) {
+    // Ease toward the target rather than restarting a CSS transition every frame, which is what made it shudder.
+    const goal = [r.left - 8, r.top - 8, r.width + 16, r.height + 16], box = coach.box;
+    coach.box = !box || RM ? goal : box.map((v, i) => Math.abs(goal[i] - v) < .5 ? goal[i] : v + (goal[i] - v) * .22);
+    const [x, y, w, h] = coach.box.map(v => Math.round(v));
+    coach.ring.style.translate = `${x}px ${y}px`; coach.ring.style.width = `${w}px`; coach.ring.style.height = `${h}px`;
+  } else coach.box = null;
+  placeCard(r);
+  const show = from && to && !busy && !drag && !RM;
+  coach.finger.hidden = !show;
+  if (!show) return;
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const ax = a.left + a.width / 2, ay = a.top + a.height / 2, bx = b.left + b.width / 2, by = b.top + b.height / 2;
+  // 2.4 seconds a loop: press, glide over, lift, then rest.
+  const t = ((now - coach.started) % 2400) / 2400, ease = x => x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+  const move = Math.min(1, Math.max(0, (t - .15) / .5)), k = ease(move);
+  coach.finger.style.translate = `${ax + (bx - ax) * k - 16}px ${ay + (by - ay) * k - 16}px`;
+  coach.finger.style.opacity = t < .08 ? t / .08 : t > .75 ? Math.max(0, 1 - (t - .75) / .1) : 1;
+  coach.finger.style.scale = t > .1 && t < .7 ? '.85' : '1';
+}
+// The card sits where it hides nothing that matters: first the open space under the mat's message line, then over
+// that line (the coach says the same thing), then over the header, then at the very bottom. Never over the spotlight.
+function placeCard(r) {
+  const card = coach.card;
+  if (card.classList.contains('centered')) { card.style.top = ''; coach.cardY = null; return; }
+  const m = 12, h = card.offsetHeight, bar = document.querySelector('.bottom');
+  const clear = y => !r || y + h <= r.top - 4 || y >= r.top + r.height + 4;
+  const matBottom = mat.getBoundingClientRect().bottom + m, under = Math.max(message.getBoundingClientRect().bottom + m, matBottom);
+  const floor = (bar.hidden ? innerHeight : bar.getBoundingClientRect().top) - m;
+  const top = Math.max(m, parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0);
+  const low = innerHeight - h - m;
+  const y = under + h <= floor && clear(under) ? under
+    : matBottom + h <= floor && clear(matBottom) ? matBottom
+    : top + h <= shelf.getBoundingClientRect().top && clear(top) ? top
+    : clear(low) ? low : top;
+  if (coach.cardY !== y) { coach.cardY = y; card.style.top = `${Math.round(y)}px`; }
+}
+$('practice-btn').addEventListener('click', startPractice);
+
 let helpSeen = true; try { helpSeen = localStorage.getItem('spoondle-help-seen-v2') !== null; } catch {}
 // First visit: the title card holds for a moment (a tap or key skips it), then How to play opens over it as it fades.
 function welcome() {
@@ -943,5 +1123,8 @@ function welcome() {
     setTimeout(() => { if (!splash.classList.contains('shown')) leave(); }, 2500);   // never wait long on a slow connection
   });
 }
-if (!helpSeen) welcome().then(openHelp);
 buildPicker(); applyTheme(theme()); showSound(); showRelax(); build();
+// A first visit starts with the practice puzzle (How to play is always a tap away); ?practice replays it.
+let practiceSeen = true; try { practiceSeen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
+if (!helpSeen && !practiceSeen) welcome().then(startPractice);
+else { welcome(); if (new URLSearchParams(location.search).has('practice')) startPractice(); }   // welcome() only clears the title card if it's up
