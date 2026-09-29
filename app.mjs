@@ -153,7 +153,7 @@ function makeTile(ch, card = null, index = 0) {
 function makeGap() { const g = document.createElement('div'); g.className = 'gap'; return g; }
 function makeWord(card) {
   const w = document.createElement('div'); w.className = 'word'; w.dataset.col = card.column; w.dataset.id = card.id;
-  [...card.word].forEach((ch, i) => { const t = makeTile(ch, card.id, i); t.style.setProperty('--r', `${(Math.random() * 4.4 - 2.2).toFixed(2)}deg`); w.append(t); });
+  [...card.word].forEach((ch, i) => { const t = makeTile(ch, card.id, i); t.dataset.col = card.column; t.style.setProperty('--r', `${(Math.random() * 4.4 - 2.2).toFixed(2)}deg`); w.append(t); });
   return w;
 }
 // Clues and hints color the original tiles: amber for a letter to swap, gray for one to leave.
@@ -719,8 +719,8 @@ function demoScript(card) {
 function demoWords(card, { a, b, answer }) {
   const stage = card.querySelector('.demo');
   const s = Math.max(20, Math.min(34, Math.floor((stage.clientWidth - 24 - 3 * answer.length) / (answer.length + 1))));
-  const row = word => { const w = document.createElement('div'); w.className = 'word'; w.style.cssText = `--s:${s}px;--gap:3px`; for (const ch of word) w.append(makeTile(ch)); return w; };
-  const rows = [row(a.word), row(b.word)];
+  const row = (word, col) => { const w = document.createElement('div'); w.className = 'word'; w.style.cssText = `--s:${s}px;--gap:3px`; for (const ch of word) { const t = makeTile(ch); t.dataset.col = col; w.append(t); } return w; };
+  const rows = [row(a.word, 0), row(b.word, 1)];
   stage.replaceChildren(...rows); card.querySelector('.demo-note').textContent = '';
   return { stage, rows, s };
 }
