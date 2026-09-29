@@ -562,3 +562,14 @@ dialog.sheet{max-width:440px}
 /* Each icon centers on its item's first line, so a two-line item keeps its icon beside the start of the text. */
 .coach-keys li{display:flex;align-items:flex-start;gap:8px;line-height:20px}
 .coach-keys .icon-btn.as-icon{flex:none;margin:-3px 0 0;vertical-align:0}
+
+/* A phone held sideways has too little height for the board, so a mat of tiles asks for portrait and the clock waits. */
+.rotate{display:none}
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse){
+  .rotate{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,5dvh,24px);padding:12px 24px;background:var(--table-art),var(--table);color:var(--ink);--rs:min(46px,calc((100vw - 120px)/13.6),calc(100dvh/8.5))}
+  [data-theme=felt] .rotate{box-shadow:inset 0 0 0 8px #5b361a,inset 0 0 0 9.5px #3b2210,inset 0 0 0 10.5px rgba(255,210,150,.18),inset 0 18px 26px rgba(0,0,0,.35)}
+  .rotate .mat{margin:0;gap:calc(var(--rs)*.3);justify-items:center}
+  .rotate .word{--s:var(--rs);--gap:calc(var(--rs)*.12);pointer-events:none}
+  .rotate .tile{cursor:default}
+  .rotate p{margin:0;font:600 clamp(18px,6dvh,24px)/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;text-wrap:balance}
+}

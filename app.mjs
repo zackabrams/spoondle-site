@@ -34,8 +34,16 @@ function persist() {
 }
 
 // ---------- start each puzzle deliberately; pause its clock when it is not visible ----------
+// The rotate card's message, spelled out in tiles on a mat: a left-column word over a right-column word, like a real pair.
+{
+  const row = (words, col) => { const w = document.createElement('div'); w.className = 'word'; words.forEach((word, i) => { if (i) w.append(makeGap()); [...word].forEach((ch, j) => { const t = makeTile(ch); t.dataset.col = col; t.style.setProperty('--r', `${((j * 7 + i * 3 + col * 5) % 5 - 2) * .9}deg`); w.append(t); }); }); return w; };
+  $('rotate-mat').append(row(['TURN', 'YOUR'], 0), row(['PHONE', 'UPRIGHT'], 1));
+}
+const sideways = matchMedia('(orientation: landscape) and (max-height: 500px) and (pointer: coarse)');
+sideways.addEventListener('change', () => { document.querySelector('.app').inert = sideways.matches; refreshClocks(); });
+document.querySelector('.app').inert = sideways.matches;
 function syncClocks() {
-  const showing = !document.hidden && !$('help-dialog').open;
+  const showing = !document.hidden && !$('help-dialog').open && !sideways.matches;
   if (practice) { records.forEach(r => pauseRecord(r)); if (showing) resumeRecord(practice.record); else pauseRecord(practice.record); return; }
   records.forEach((r, i) => {
     if (i !== board || !showing || r.startedAt === null) { pauseRecord(r); return; }
