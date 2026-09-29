@@ -317,6 +317,8 @@ function snapBack(d) {
 function domSwap(a, b) { const m = document.createComment(''); a.replaceWith(m); b.replaceWith(a); m.replaceWith(b); }
 const inside = (r, x, y, pad = 0) => x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
 const wordOn = side => slots[side]?.querySelector('.word') ?? null;
+// The slot, top or bottom as the mat shows them now, nearest a point.
+const slotAt = y => slots.reduce((best, slot) => { const r = slot.getBoundingClientRect(), d = Math.abs(y - (r.top + r.height / 2)); return d < best.d ? { slot, d } : best; }, { slot: null, d: Infinity }).slot;
 const text = w => [...w.children].map(t => t.dataset.letter).join('');
 function syncSlots() {
   slots.forEach(slot => slot.classList.toggle('full', !!slot.querySelector('.word')));
@@ -340,13 +342,15 @@ function markHome(word, away) {
 }
 
 // ---------- the rules: words go to the mat; letters trade between the two words there ----------
-function placeWord(word, lifted = null) {
+// Each column keeps its own slot; a word dropped on the other slot turns the mat, so it lands where it was dropped.
+function placeWord(word, lifted = null, at = null) {
   ensureStarted();
-  const side = +word.dataset.col, old = wordOn(side);
+  const side = +word.dataset.col, old = wordOn(side), turn = !!at && at !== slots[side];
   if (old === word) { if (lifted) snapBack(lifted); return; }
-  flip(old ? [word, old] : [word], () => {
+  flip([word, old, turn && wordOn(1 - side)].filter(Boolean), () => {
     if (old) { homeOf.get(old).append(old); markHome(old, false); }
     slots[side].append(word); markHome(word, true); syncSlots();
+    if (turn) mat.classList.toggle('flipped');
   }, { lifted });
   clack('place'); lastWrong = null; say();
 }
@@ -557,6 +561,8 @@ function aim() {
   if (drag.mode === 'word') {
     const over = inside(matRect, press.x, press.y, 16);
     mat.classList.toggle('ready', over && !drag.fromMat);
+    const aimed = over && !drag.fromMat ? slotAt(press.y) : null;
+    slots.forEach(slot => slot.classList.toggle('aim', slot === aimed));
     const bumped = drag.fromMat ? null : wordOn(+drag.el.dataset.col);
     if (bumped && bumped !== drag.el) { bumped.classList.toggle('leaving', over); drag.leaving = bumped; }
     return;
@@ -585,14 +591,14 @@ function finish(e, cancelled) {
   if (!press || e.pointerId !== press.id) return;
   const p = press; press = null;
   if (!drag) { if (!cancelled) tap(p); return; }
-  const d = drag; mat.classList.remove('ready'); d.leaving?.classList.remove('leaving');
+  const d = drag; mat.classList.remove('ready'); slots.forEach(slot => slot.classList.remove('aim')); d.leaving?.classList.remove('leaving');
   if (cancelled || d.mode !== 'tile') preview(null);
   drag = null; d.target?.classList.remove('target');
   if (cancelled) return snapBack(d);
   if (d.mode === 'word') {
     const onMat = inside(mat.getBoundingClientRect(), p.x, p.y, 16);
     if (d.fromMat) return onMat ? snapBack(d) : sendHome(d.el, d);
-    return onMat ? placeWord(d.el, d) : snapBack(d);
+    return onMat ? placeWord(d.el, d, slotAt(p.y)) : snapBack(d);
   }
   return d.target ? trade(d.el, d.target, d) : snapBack(d);
 }

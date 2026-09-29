@@ -189,6 +189,7 @@ button{font:inherit;color:inherit}
 .mat.ready{box-shadow:var(--mat-shadow),0 0 0 3px var(--accent)}
 .slot{min-height:calc(var(--mat-s,50px) + 20px);display:flex;align-items:center;justify-content:center;border-radius:12px;border:1.5px dashed var(--line)}
 .slot.full{border-color:transparent}
+.mat .slot.slot.aim{border-color:var(--accent);background:var(--accent-soft)}
 .slot .word{--s:var(--mat-s,50px);--gap:6px}
 .slot .tile,.merged .tile{rotate:0deg}
 .mat.merging .slot{display:none}
