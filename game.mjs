@@ -82,7 +82,7 @@ export function partnerOf(puzzle, id) {
   return puzzle.cards.find(c => c.column !== column && solvedAnswer(puzzle, [id, c.id]))?.id ?? null;
 }
 // Hints spread out rather than handing over an answer: first a word in the column with fewer lit words,
-// then any word, and a lit word's partner only once nothing else is left. (A Reveal's amber tile counts as lit.)
+// then any word, and a lit word's partner only once nothing else is left. (A peek's amber tile counts as lit.)
 export function revealHint(puzzle, state, random = Math.random) {
   const candidates = hintTargets(puzzle, state);
   if (!candidates.length) return null;

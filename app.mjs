@@ -85,8 +85,8 @@ function ensureStarted() { if (record().startedAt === null) startPuzzle(); }
 function updateStats() {
   const s = state(), plural = (n, word) => `${n} ${word}${n === 1 ? '' : word.endsWith('s') ? 'es' : 's'}`;
   $('timer').textContent = formatTime(elapsedMs(record()));
-  // Hints and reveals are counted above the answers; reveals are stored as `misses` (their old name).
-  for (const [id, n, word] of [['use-hints', s.hints, 'hint'], ['use-reveals', s.misses, 'reveal']]) {
+  // Hints and peeks are counted above the answers; peeks are stored as `misses` (their first name).
+  for (const [id, n, word] of [['use-hints', s.hints, 'hint'], ['use-reveals', s.misses, 'peek']]) {
     const el = $(id), was = +el.dataset.n;
     el.lastChild.textContent = ` ${word}${n === 1 ? '' : 's'}`; el.querySelector('b').textContent = n; el.dataset.n = n;
     el.classList.toggle('on', n > 0);
@@ -160,7 +160,7 @@ function makeWord(card) {
 function paintFeedback() {
   const feedback = state().feedback, solved = new Set(state().solved.flat());
   for (const t of document.querySelectorAll('.tile[data-card]')) {
-    // A solved pair drops its hint and reveal colors, so the answer glows evenly.
+    // A solved pair drops its hint and peek colors, so the answer glows evenly.
     const status = solved.has(t.dataset.card) ? null : feedback[t.dataset.card]?.[t.dataset.index];
     if (status) t.dataset.status = status; else delete t.dataset.status;
     t.setAttribute('aria-label', t.dataset.letter + (status === 'swap' ? ', swap this letter' : status === 'stay' ? ', leave this letter' : ''));
@@ -264,11 +264,11 @@ function pill(label, onClick, primary = false) {
   const b = document.createElement('button'); b.type = 'button'; b.className = primary ? 'pill primary' : 'pill'; b.textContent = label;
   b.addEventListener('click', () => onClick(b)); return b;
 }
-// Reveal wears an eye, as Hint wears a lightbulb (the counters above the answers wear the same two).
+// Peek wears an eye, as Hint wears a lightbulb (the counters above the answers wear the same two).
 const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>';
-// On a computer, pointing at Reveal (or tabbing to it) outlines the two tiles it would color.
+// On a computer, pointing at Peek (or tabbing to it) outlines the two tiles it would color.
 function revealPill() {
-  const b = pill('Reveal', showClue); b.classList.add('soft'); b.insertAdjacentHTML('afterbegin', EYE);
+  const b = pill('Peek', showClue); b.classList.add('soft'); b.insertAdjacentHTML('afterbegin', EYE);
   const preview = on => { if (!lastWrong) return;
     lastWrong.ids.forEach((id, i) => document.querySelector(`.tile[data-card="${id}"][data-index="${lastWrong.positions[i]}"]`)?.classList.toggle('previewed', on)); };
   b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') preview(true); });
@@ -392,7 +392,7 @@ function nope(wrong) {
   setTimeout(() => {
     const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
     if (!wrong) return say(['Those letters match.']);
-    // A wrong trade is free. Its clue counts as a reveal, and only once per trade.
+    // A wrong trade is free. Its clue counts as a peek, and only once per trade.
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
     say(clued ? ['Not an answer.'] : ['Not an answer.', revealPill()]);

@@ -259,6 +259,12 @@ dialog p{margin:10px 0;line-height:1.5}
 /* One statement per line (the categories; Hint and Reveal). Like the rules, they shrink a touch on narrow phones. */
 .lines{font-size:min(15px,3.6vw)}
 .lines>span{display:block;text-wrap:pretty}
+/* The three categories each fit on one line: the type shrinks a touch with the dialog's width (no smaller than 12.5px).
+   On a narrower phone a line wraps instead, evenly, so none ends on a lone word or two. */
+#help-dialog{container-type:inline-size}
+.lines.cats{font-size:clamp(12.5px,calc(100cqw / 26.9),15px)}
+.lines.cats>span{text-wrap:balance}
+.lines.cats>span+span{margin-top:4px}
 .fine{font-size:13px;color:var(--muted)}
 .fine a{color:var(--accent)}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}

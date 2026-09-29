@@ -76,5 +76,5 @@ export function streak(days, now=Date.now()) {
 export function shareText(puzzle, record, url, { relaxed = false } = {}) {
   if(record.finishedAt===null)throw new Error('Finish the puzzle before sharing your result.');
   const s=record.state;
-  return `Spoondle · Test puzzle ${puzzle.id}${puzzle.difficulty?` (${puzzle.difficulty})`:''}\n${s.revealed?`Gave up${relaxed?'':` after ${formatTime(elapsedMs(record))}`} · ${s.solved.length-s.revealed} of ${puzzle.answers.length} found`:relaxed?'Solved in relax mode 🍵':`Solved in ${formatTime(elapsedMs(record))}`} · 👁️ ${s.misses} reveal${s.misses===1?'':'s'} · 💡 ${s.hints} hint${s.hints===1?'':'s'}\n${s.revealed||relaxed?'Can you solve it?':'Can you beat my time?'}\n${url}`;
+  return `Spoondle · Test puzzle ${puzzle.id}${puzzle.difficulty?` (${puzzle.difficulty})`:''}\n${s.revealed?`Gave up${relaxed?'':` after ${formatTime(elapsedMs(record))}`} · ${s.solved.length-s.revealed} of ${puzzle.answers.length} found`:relaxed?'Solved in relax mode 🍵':`Solved in ${formatTime(elapsedMs(record))}`} · 👁️ ${s.misses} peek${s.misses===1?'':'s'} · 💡 ${s.hints} hint${s.hints===1?'':'s'}\n${s.revealed||relaxed?'Can you solve it?':'Can you beat my time?'}\n${url}`;
 }
