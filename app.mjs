@@ -82,7 +82,6 @@ function unpile() {
     if (i % 3 === 0) setTimeout(() => clack('place', .35), delay + duration * .9);
     last = delay + duration;
   });
-  setTimeout(relight, last + 60);
 }
 function ensureStarted() { if (record().startedAt === null) startPuzzle(); }
 function updateStats() {
@@ -289,7 +288,7 @@ function say(parts = null) {
   for (const el of [shelf, mat]) { el.classList.toggle('finished', done); el.classList.toggle('given-up', done && state().revealed > 0); }
   document.querySelectorAll('.tile.previewed').forEach(t => t.classList.remove('previewed'));
   const p = puzzle(), r = record(), s = state();
-  message.replaceChildren(); relight();
+  message.replaceChildren();
   $('actions').hidden = r.finishedAt !== null;
   // Once solved, the time shows in the solved line, so the bar with the clock steps aside to make room.
   document.querySelector('.bottom').hidden = r.finishedAt !== null;
@@ -588,7 +587,6 @@ function frame() {
   drag.vx *= .78; drag.rot += (Math.max(-14, Math.min(14, drag.vx * 1.6)) - drag.rot) * .25;
   drag.ox = press.x - press.x0; drag.oy = press.y - press.y0;
   drag.el.style.transform = `translate(${drag.ox}px,${drag.oy}px) scale(${drag.k}) rotate(${drag.rot}deg)`;
-  if (theme() === 'lamp') { const [dx, dy] = lampOffset(press.x, press.y, 44); drag.el.style.setProperty('--lsx-px', `${dx.toFixed(1)}px`); drag.el.style.setProperty('--lsy-px', `${(dy + 10).toFixed(1)}px`); }
   requestAnimationFrame(frame);
 }
 function aim() {
@@ -656,10 +654,10 @@ document.addEventListener('keydown', e => {
 });
 
 // ---------- header buttons, dialogs, and the page lifecycle ----------
-// ---------- tables: the picker, and Lamplight's shadows ----------
-const THEMES = [['oak', 'Kitchen table'], ['linen', 'Linen & cork'], ['lamp', 'Lamplight'], ['felt', 'Card table'], ['light', 'Simple Light'], ['dark', 'Simple Dark']];
-const THEME_COLOR = { oak: '#c68b49', linen: '#e6dfd2', lamp: '#241710', felt: '#1c5a40', light: '#dfe4ee', dark: '#121827' };
-const systemTheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'lamp' : 'oak';
+// ---------- tables: the picker ----------
+const THEMES = [['oak', 'Kitchen table'], ['linen', 'Linen & cork'], ['blueprint', 'Drafting table'], ['felt', 'Card table'], ['light', 'Simple Light'], ['dark', 'Simple Dark']];
+const THEME_COLOR = { oak: '#c68b49', linen: '#e6dfd2', blueprint: '#1b3a67', felt: '#1c5a40', light: '#dfe4ee', dark: '#121827' };
+const systemTheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'oak';
 const theme = () => document.documentElement.dataset.theme;
 function applyTheme(id, save = false) {
   document.documentElement.dataset.theme = id;
@@ -668,7 +666,6 @@ function applyTheme(id, save = false) {
   for (const b of $('swatches').children) b.setAttribute('aria-pressed', String(b.dataset.pick === id));
   // Tables differ in padding and answer-sheet height, so size the tiles again for this one.
   if (shelf.childElementCount) { sizeTiles(); pileUp(); }
-  relight();
 }
 function buildPicker() {
   $('theme').innerHTML = GEAR;
@@ -681,35 +678,12 @@ function buildPicker() {
     return b;
   }));
 }
-// Lamplight: each tile's shadow falls away from the lamp hanging over the mat.
-let relightTimer = 0;
-function relight() { clearTimeout(relightTimer); relightTimer = setTimeout(lightTiles, RM ? 0 : 420); }
-function lampOffset(x, y, reach, longest = Infinity) {
-  const m = mat.getBoundingClientRect(), span = Math.max(innerWidth, innerHeight, 600) * .5;
-  const dx = (x - (m.left + m.width / 2)) / span * reach, dy = (y - (m.top + m.height * .45)) / span * reach;
-  const length = Math.hypot(dx, dy), shrink = Math.min(1, longest / (length || 1));
-  return [dx * shrink, dy * shrink, length];   // the length before the cap still says which tile is farther
-}
-function lightTiles() {
-  const tiles = document.querySelectorAll('.shelf .tile, .slot .tile');
-  if (theme() !== 'lamp') { for (const t of tiles) for (const v of ['--tsx-px', '--tsy-px', '--tz']) t.style.removeProperty(v); return; }
-  const words = new Map();
-  for (const t of tiles) {
-    const r = t.getBoundingClientRect(), [dx, dy, far] = lampOffset(r.left + r.width / 2, r.top + r.height / 2, 16, 12);
-    t.style.setProperty('--tsx-px', `${dx.toFixed(1)}px`); t.style.setProperty('--tsy-px', `${(dy + 2).toFixed(1)}px`);
-    if (!words.has(t.parentNode)) words.set(t.parentNode, []);
-    words.get(t.parentNode).push([far, t]);
-  }
-  // Each shadow falls away from the lamp, so within a word the tile farther from the lamp sits on top:
-  // a neighbor's shadow tucks under it instead of smudging its face.
-  for (const list of words.values()) list.sort((a, b) => a[0] - b[0]).forEach(([, t], i) => t.style.setProperty('--tz', i + 1));
-}
 $('theme').addEventListener('click', () => $('theme-dialog').showModal());
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   let chosen = null; try { chosen = localStorage.getItem('spoondle-theme'); } catch {}
   if (!chosen) applyTheme(systemTheme());
 });
-addEventListener('resize', () => { sizeTiles(); relight(); pileUp(); });
+addEventListener('resize', () => { sizeTiles(); pileUp(); });
 $('relax').addEventListener('click', () => {
   relaxed = !relaxed; try { localStorage.setItem('spoondle-relax', relaxed ? 'on' : 'off'); } catch {}
   showRelax(); clack('pick', .6);

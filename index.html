@@ -24,12 +24,12 @@
 <link rel="icon" href="favicon.ico" sizes="32x32"><link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script>/* Arriving from an old address (spoondle.zackabrams.com or zackabrams.com/spoondle), the link carries that browser's saved puzzles and settings after the #. Keep any this address doesn't have yet. */try{const c=new URLSearchParams(location.hash.slice(1)).get('carry');if(c){for(const[k,v]of Object.entries(JSON.parse(c)))if(k.startsWith('spoondle-')&&typeof v==='string'&&localStorage.getItem(k)===null)localStorage.setItem(k,v);history.replaceState(null,'',location.pathname+location.search)}}catch{}</script>
-<script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
+<script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=5ah8wdt3">
+<link rel="stylesheet" href="style.css?v=27mu5qxs">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=xn9pnvpe","./progress.mjs":"./progress.mjs?v=1e5tavtw","./puzzles.mjs":"./puzzles.mjs?v=2206w29i","./seal.mjs":"./seal.mjs?v=1jphmj7k","./schedule.mjs":"./schedule.mjs?v=5l0b6ujj","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei"}}</script>
-<script type="module" src="app.mjs?v=2dy4z2ja"></script>
+<script type="module" src="app.mjs?v=16p8p0bk"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater." width="1734" height="907"></div>
