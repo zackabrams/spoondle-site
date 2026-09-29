@@ -954,7 +954,7 @@ function endPractice() {
   try { localStorage.setItem('spoondle-practice-seen', '1'); } catch {}
   for (const k of ['card', 'ring', 'finger']) { coach[k]?.remove(); coach[k] = null; }
   document.querySelectorAll('.coach-lift').forEach(el => el.classList.remove('coach-lift'));
-  cancelAnimationFrame(coach.raf); coach.step = null; coach.box = null; coach.cardY = null;
+  cancelAnimationFrame(coach.raf); coach.step = null; coach.box = null; coach.cardY = coach.cardX = null;
   build(false); refreshClocks();
 }
 const onTable = text => [...document.querySelectorAll('.word')].find(w => w.textContent === text && !w.classList.contains('merged'));
@@ -1084,22 +1084,43 @@ function coachFrame(now) {
   coach.finger.style.opacity = t < .08 ? t / .08 : t > .75 ? Math.max(0, 1 - (t - .75) / .1) : 1;
   coach.finger.style.scale = t > .1 && t < .7 ? '.85' : '1';
 }
-// The card sits where it hides nothing that matters: first the open space under the mat's message line, then over
-// that line (the coach says the same thing), then over the header, then at the very bottom. Never over the spotlight.
+// The card aims for the middle of the screen but stays a little above everything the step points at (the words or
+// letters to move, where they go, the mat), so it never covers what the player has to touch. If there's no room above,
+// it drops below; on a short sideways screen it slides to the side instead. It also keeps clear of the header and
+// title rows where it would overlap them (phones).
 function placeCard(r) {
   const card = coach.card;
-  if (card.classList.contains('centered')) { card.style.top = ''; coach.cardY = null; return; }
-  const m = 12, h = card.offsetHeight, bar = document.querySelector('.bottom');
-  const clear = y => !r || y + h <= r.top - 4 || y >= r.top + r.height + 4;
-  const matBottom = mat.getBoundingClientRect().bottom + m, under = Math.max(message.getBoundingClientRect().bottom + m, matBottom);
-  const floor = (bar.hidden ? innerHeight : bar.getBoundingClientRect().top) - m;
-  const top = Math.max(m, parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0);
-  const low = innerHeight - h - m;
-  const y = under + h <= floor && clear(under) ? under
-    : matBottom + h <= floor && clear(matBottom) ? matBottom
-    : top + h <= shelf.getBoundingClientRect().top && clear(top) ? top
-    : clear(low) ? low : top;
-  if (coach.cardY !== y) { coach.cardY = y; card.style.top = `${Math.round(y)}px`; }
+  if (card.classList.contains('centered')) { card.style.top = card.style.left = ''; coach.cardY = coach.cardX = null; return; }
+  if (drag) return;
+  const m = 12, h = card.offsetHeight, w = card.offsetWidth, c = COACH[coach.step], cy = (innerHeight - h) / 2;
+  const rects = [c.from?.(), c.to?.(), c.ring?.(), mat].filter(Boolean).map(el => el.getBoundingClientRect());
+  const rows = [['.top', ['.brand', '.tools']], ['.board-bar', ['.cat', '.nav']]];
+  // The lowest the card may start at, given where it sits sideways.
+  const floorAt = x0 => rows.reduce((min, [row, parts]) => {
+    const blocked = parts.some(sel => { const b = document.querySelector(`${row} ${sel}`)?.getBoundingClientRect(); return b && b.width && b.right > x0 && b.left < x0 + w; });
+    return blocked ? Math.max(min, document.querySelector(row).getBoundingClientRect().bottom + 8) : min;
+  }, m);
+  const middle = (innerWidth - w) / 2;
+  let best = null;
+  const tryAt = (x0, y, cost) => { if (y + h <= innerHeight - m && (!best || cost < best.cost)) best = { x0, y, cost }; };
+  // Sideways moves cost a lot, so they only win when the middle has no room.
+  for (const [x0, side] of [[middle, 0], [m, 300], [innerWidth - w - m, 300]]) {
+    const near = rects.filter(q => q.right + 10 > x0 && q.left - 10 < x0 + w);
+    if (!near.length) { tryAt(x0, Math.max(floorAt(x0), cy), side + 100); continue; }
+    const top = Math.min(...near.map(q => q.top)), bottom = Math.max(...near.map(q => q.bottom)), min = floorAt(x0);
+    for (const gap of [20, 10]) {
+      const above = top - gap - h;
+      if (above >= min) tryAt(x0, Math.max(min, Math.min(cy, above)), side + Math.abs(Math.min(cy, above) - cy) + (gap < 20 ? 60 : 0));
+      if (gap === 20 && bottom + gap + h <= innerHeight - m) tryAt(x0, bottom + gap, side + 200 + Math.abs(bottom + gap - cy));
+    }
+  }
+  // Last resorts: squeeze in above the target over the header and title rows, else sit at the top.
+  const top = Math.min(...rects.map(q => q.top)), above = top - 10 - h;
+  if (!best) best = { x0: middle, y: Math.max(m, above), cost: 0 };
+  if (coach.cardY !== best.y || coach.cardX !== best.x0) {
+    coach.cardY = best.y; coach.cardX = best.x0;
+    card.style.top = `${Math.round(best.y)}px`; card.style.left = best.x0 === middle ? '' : `${Math.round(best.x0 + w / 2)}px`;
+  }
 }
 $('practice-btn').addEventListener('click', startPractice);
 
