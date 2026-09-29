@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Zack Abrams. All rights reserved. Not licensed for reuse; see LICENSE.
 import { puzzles, tutorial } from './puzzles.mjs';
 import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint, lightSwap } from './game.mjs';
 import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';

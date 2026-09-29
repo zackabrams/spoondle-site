@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Zack Abrams. All rights reserved. Not licensed for reuse; see LICENSE.
 import { labelsFor, answerDigest, tileOffset, openText } from './seal.mjs';
 const cardFor = (puzzle, id) => puzzle.cards.find(c => c.id === id);
 export function swapIndex(puzzle, id) {

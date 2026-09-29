@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Zack Abrams. All rights reserved. Not licensed for reuse; see LICENSE. */
 :root{
   --oak-grain:url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'380'%20height%3D'380'%3E%3Cfilter%20id%3D't'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.22%200.008'%20numOctaves%3D'4'%20seed%3D'7'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20type%3D'matrix'%20values%3D'0%200%200%200%200.24%200%200%200%200%200.12%200%200%200%200%200.04%201.35%200%200%200%20-0.55'%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23t)'%2F%3E%3C%2Fsvg%3E");
   --felt-tex:url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'180'%20height%3D'180'%3E%3Cfilter%20id%3D't'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.95'%20numOctaves%3D'2'%20seed%3D'11'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20type%3D'matrix'%20values%3D'0%200%200%200%201%200%200%200%200%201%200%200%200%200%201%200.55%200%200%200%20-0.22'%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23t)'%2F%3E%3C%2Fsvg%3E");
@@ -419,7 +420,7 @@ dialog p{margin:10px 0;line-height:1.5}
 /* First visit only: the title card for a moment. Its navy is the card's own, so the picture has no edges.
    On a tall phone it runs a little past the sides, trimming the card's empty margins so the words read bigger. */
 .splash{position:fixed;inset:0;z-index:100;overflow:hidden;background:#121927;transition:opacity .4s ease}
-.splash img{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(108vw,900px,calc((100dvh - 24px)*1734/907));max-width:none;height:auto;opacity:0;scale:.97;transition:opacity .5s ease,scale .8s cubic-bezier(.2,.8,.2,1)}
+.splash img{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(100vw,1000px,calc((100dvh - 24px)*2000/1050));max-width:none;height:auto;opacity:0;scale:.97;transition:opacity .5s ease,scale .8s cubic-bezier(.2,.8,.2,1)}
 .splash.shown img{opacity:1;scale:1}
 .splash.leaving{opacity:0;pointer-events:none}
 /* "sticky" and "swappy" in How to play wear the gray and amber a clue paints on tiles, and act the part now and then. */
