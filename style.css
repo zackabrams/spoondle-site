@@ -202,6 +202,12 @@ button{font:inherit;color:inherit}
 .mat.pair .mat-flip{opacity:1;pointer-events:auto}
 .mat.merging .mat-flip{opacity:0;pointer-events:none}
 .merged{justify-self:center;align-self:center}
+/* A solved word, fused into one tile: the same face and edge as a letter tile, one letter per tile-width. */
+.wordtile{display:grid;grid-auto-flow:column;grid-auto-columns:var(--s);height:var(--s);place-items:center;border-radius:calc(var(--s)*.24);
+  background:var(--tile-art),linear-gradient(165deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));color:var(--tile-ink);
+  font:600 calc(var(--s)*.66)/1 "Rubik",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;text-shadow:0 1px 0 rgba(255,255,255,.7);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 calc(var(--s)*.07) 0 var(--tile-edge),0 0 0 2px var(--accent),0 calc(var(--s)*.07) 0 2px var(--accent),0 6px 14px var(--shadow)}
+.found .wd{display:contents}
 .found .answer{color:var(--ink);font:600 clamp(15px,4.4vw,18px)/1.1 "Rubik",system-ui,sans-serif;letter-spacing:.015em;text-transform:uppercase;white-space:nowrap}
 
 .message{min-height:44px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;text-align:center;color:var(--muted);font-size:14px;text-wrap:balance}
@@ -296,8 +302,10 @@ dialog p{margin:10px 0;line-height:1.5}
 [data-theme=felt] .found::after{content:"";position:absolute;inset:auto 0 0 0;height:7px;border-radius:2px 2px 3px 3px;background:linear-gradient(#8a5a2e,#5e3a1a 60%,#4a2c12);box-shadow:0 4px 8px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,210,160,.35)}
 /* Letters fill most of each tile: as large as 20px, scaled down so a long answer still fits its rack. */
 [data-theme=felt] .found .answer{display:flex;justify-content:center;gap:1px;width:100%;font:600 16px/1 "Rubik",system-ui,sans-serif;font-size:min(20px,calc(100cqw / var(--n,8) * 1.08));letter-spacing:0;text-transform:uppercase}
-[data-theme=felt] .found .ch{flex:1 1 0;max-width:25px;min-width:0;height:29px;display:grid;place-items:center;border-radius:3px;color:var(--tile-ink);
-  background:linear-gradient(162deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 0 var(--tile-edge);transform:perspective(200px) rotateX(7deg);transform-origin:bottom}
+/* Each found word stands in the rack as one long tile. */
+[data-theme=felt] .found .wd{display:flex;flex:var(--len) 1 0;max-width:calc(var(--len)*25px);min-width:0;height:29px;border-radius:5px;color:var(--tile-ink);
+  background:var(--tile-art),linear-gradient(162deg,var(--tile-top),var(--tile-mid) 55%,var(--tile-low));box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 0 var(--tile-edge);transform:perspective(200px) rotateX(7deg);transform-origin:bottom}
+[data-theme=felt] .found .ch{flex:1 1 0;min-width:0;display:grid;place-items:center}
 [data-theme=felt] .found .sp{flex:0 0 5px}
 [data-theme=felt] .found.revealed .answer{opacity:.6}
 
@@ -374,7 +382,7 @@ dialog p{margin:10px 0;line-height:1.5}
   [data-theme=linen] .tray{--row:36px}
   [data-theme=linen] .found .answer{font-size:18px}
   [data-theme=felt] .found{height:48px}
-  [data-theme=felt] .found .ch{max-width:32px;height:37px}
+  [data-theme=felt] .found .wd{max-width:calc(var(--len)*32px);height:37px}
   [data-theme=felt] .found .answer{font-size:min(25px,calc(100cqw / var(--n,8) * 1.08))}
 }
 /* A tall desktop window: a roomier answer sheet with larger writing. */

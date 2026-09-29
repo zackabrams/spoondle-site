@@ -175,7 +175,13 @@ function written(label) {
 }
 function fillFound(box, label, revealed) {
   const answer = document.createElement('span'); answer.className = 'answer'; answer.style.setProperty('--n', label.length);
-  for (const ch of written(label)) { const c = document.createElement('span'); c.className = ch === ' ' ? 'sp' : 'ch'; c.textContent = ch; answer.append(c); }
+  // Each word in its own span, so Card table can show it as one tile.
+  for (const word of written(label).split(' ')) {
+    if (answer.childElementCount) { const sp = document.createElement('span'); sp.className = 'sp'; sp.textContent = ' '; answer.append(sp); }
+    const w = document.createElement('span'); w.className = 'wd'; w.style.setProperty('--len', word.length);
+    for (const ch of word) { const c = document.createElement('span'); c.className = 'ch'; c.textContent = ch; w.append(c); }
+    answer.append(w);
+  }
   box.classList.add('filled'); box.classList.toggle('revealed', revealed); box.setAttribute('role', 'button'); box.tabIndex = 0;
   box.setAttribute('aria-label', revealed ? `${label}, revealed` : label);
   box.replaceChildren(answer);
@@ -415,8 +421,27 @@ function solve(hit, [first, second]) {
       mat.classList.add('merging'); mat.append(merged); first.remove(); second.remove(); syncSlots();
     }, { duration: RM ? 1 : 440 });
     clack('place', .8);
-    setTimeout(() => flyToTray(merged, hit), RM ? 300 : 1000);
+    setTimeout(() => fuse(merged), RM ? 0 : 560);
+    setTimeout(() => flyToTray(merged, hit), RM ? 300 : 1400);
   }, RM ? 100 : 280);
+}
+// Once the answer is spelled out, its letters close up and each word becomes one smooth tile.
+function fuse(merged) {
+  const tiles = [...merged.querySelectorAll('.tile')];
+  const close = () => {
+    const words = [[]];
+    for (const el of merged.children) if (el.classList.contains('gap')) words.push(el, []); else words.at(-1).push(el.dataset.letter);
+    merged.replaceChildren(...words.map(w => Array.isArray(w) ? wordTile(w.join('')) : w));
+    if (!RM) for (const w of merged.querySelectorAll('.wordtile')) w.animate([{ scale: 1 }, { scale: 1.07 }, { scale: 1 }], { duration: 320, easing: 'ease-out' });
+  };
+  if (RM) { merged.style.setProperty('--gap', '0px'); close(); return; }
+  flip(tiles, () => merged.style.setProperty('--gap', '0px'), { duration: 240 });
+  setTimeout(close, 260);
+}
+function wordTile(text) {
+  const w = document.createElement('div'); w.className = 'wordtile';
+  for (const ch of text) { const c = document.createElement('span'); c.textContent = ch; w.append(c); }
+  return w;
 }
 // With three answers found, the last two words are the only pair left, so they move onto the mat by themselves.
 function placeLastPair(delay = 0) {
