@@ -361,7 +361,8 @@ dialog p{margin:10px 0;line-height:1.5}
   .mat.finished::after{display:grid;position:absolute;inset:0;margin:auto}
   .home:nth-child(odd){grid-column:1;justify-self:end}
   .home:nth-child(even){grid-column:3;justify-self:start}
-  .side{grid-row:4;grid-column:1;justify-self:center;align-self:center;display:flex;flex-direction:column;gap:10px;width:var(--matw)}
+  /* The mat and the line under it share a cell with the table, whose box spans it: sit above it, or the table takes their clicks. */
+  .side{grid-row:4;grid-column:1;justify-self:center;align-self:center;display:flex;flex-direction:column;gap:10px;width:var(--matw);position:relative;z-index:1}
   .mat{margin-top:0}
   [data-theme] .found{justify-content:center}
   .found{height:48px}
