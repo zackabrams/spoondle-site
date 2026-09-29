@@ -128,7 +128,12 @@ button{font:inherit;color:inherit}
 .use.on{opacity:1;border-color:transparent;color:#3a2a08}
 .use.hint.on{background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a}
 .use.reveal.on{color:#4d4d49;background:linear-gradient(165deg,#e6e6e4,#d5d5d2 55%,#c1c1bd);box-shadow:0 1.5px 0 #8f8f8a}
-.clue{margin:-4px 0 0;min-height:2.6em;font-size:13px;line-height:1.3;color:var(--muted);text-align:center;text-wrap:balance}
+.clue{margin:-2px 0 0;min-height:3.1em;font-size:13px;line-height:1.55;color:var(--muted);text-align:center;text-wrap:balance}
+/* A soft highlight behind the definition, line by line, so it reads clearly over wood grain, felt and lamplight.
+   Translucent, and padded just enough that wrapped lines meet without overlapping into a darker seam. */
+.message .note{line-height:1.55}
+.pill.soft{background:color-mix(in srgb,var(--panel) 50%,transparent);color:var(--ink)}
+.clue>span,.message .note{padding:.2em .55em;border-radius:6px;background:color-mix(in srgb,var(--panel) 50%,transparent);color:color-mix(in srgb,var(--muted) 55%,var(--ink));-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .clue b{color:var(--ink);font-weight:700;letter-spacing:.03em;margin-right:.4em}
 
 .shelf{position:relative;display:grid;grid-template-columns:auto auto auto;justify-content:space-evenly;gap:16px 12px;padding-block:4px}

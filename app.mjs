@@ -267,6 +267,8 @@ function revealPill() {
   b.addEventListener('blur', () => preview(false));
   return b;
 }
+// Words on the message line sit on the same soft highlight as a definition, so they read over any table.
+function note(text) { const n = document.createElement('span'); n.className = 'note'; n.textContent = text; return n; }
 function say(parts = null) {
   const done = record().finishedAt !== null;
   for (const el of [shelf, mat]) { el.classList.toggle('finished', done); el.classList.toggle('given-up', done && state().revealed > 0); }
@@ -277,13 +279,14 @@ function say(parts = null) {
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
   if (r.finishedAt !== null) {
     const next = nextUnfinished();
-    message.append(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`, pill('Share', shareResult));
-    message.append(next >= 0 ? pill('Next puzzle', () => goTo(next), true) : 'That’s all nine. Thanks for playing!');
+    const share = pill('Share', shareResult); share.classList.add('soft');
+    message.append(note(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`), share);
+    message.append(next >= 0 ? pill('Next puzzle', () => goTo(next), true) : note('That’s all nine. Thanks for playing!'));
     return;
   }
-  if (parts) { message.append(...parts); return; }
+  if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
   const n = slots.filter(slot => slot.querySelector('.word')).length;
-  message.textContent = n === 0 ? 'Drag a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Drag a letter onto the other word.';
+  message.replaceChildren(note(n === 0 ? 'Drag a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Drag a letter onto the other word.'));
 }
 
 // ---------- motion: move elements in the DOM, then animate each from where it was ----------
@@ -421,7 +424,8 @@ function placeLastPair(delay = 0) {
 // A found answer's definition goes on the line under the answers. Tapping any found answer shows its own.
 function define(hit) {
   const label = document.createElement('b'); label.textContent = hit.label;
-  clue.replaceChildren(label, hit.clue);
+  const text = document.createElement('span'); text.append(label, hit.clue);
+  clue.replaceChildren(text);
 }
 function defineFound(box) {
   const ids = box && state().solved[[...tray.children].indexOf(box)];
