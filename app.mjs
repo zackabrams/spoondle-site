@@ -190,6 +190,7 @@ function build(save = true) {
   $('prev').disabled = board === 0; $('next').disabled = board === puzzles.length - 1;
   const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url);
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
+  delete shelf.dataset.dim;   // a new board starts with nothing on the mat, so no column is faded
   const columns = [0, 1].map(c => p.cards.filter(card => card.column === c));
   for (let i = 0; i < columns[0].length; i++) for (const column of columns) {
     const home = document.createElement('div'); home.className = 'home'; home.dataset.col = column[i].column; home.style.setProperty('--n', column[i].word.length); const w = makeWord(column[i]);
