@@ -1,17 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta charset="utf-8">
+<script>/* Spoondle now lives at spoondle.app. At the old address (spoondle.zackabrams.com), go there, keeping the puzzle in the link (?p=) and bringing this browser's saved puzzles and settings along after the #, which stays in the browser and is never sent to a server. */if(location.hostname==='spoondle.zackabrams.com'){let to='https://spoondle.app/'+location.search;try{const saved={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('spoondle-'))saved[k]=localStorage.getItem(k)}if(Object.keys(saved).length)to+='#carry='+encodeURIComponent(JSON.stringify(saved))}catch{}location.replace(to)}</script><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#dfe4ee">
 <title>Spoondle — A letter-swapping word game</title>
 <meta name="description" content="Swap letters to uncover compound words, proper nouns, and sneaky splits. Play nine test puzzles of Spoondle.">
-<link rel="canonical" href="https://spoondle.zackabrams.com/">
+<link rel="canonical" href="https://spoondle.app/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Spoondle">
 <meta property="og:title" content="Spoondle — A letter-swapping word game">
 <meta property="og:description" content="Pair words, trade a letter, and find four answers. Try nine category-based word puzzles.">
-<meta property="og:url" content="https://spoondle.zackabrams.com/">
-<meta property="og:image" content="https://spoondle.zackabrams.com/og.jpg?v=5">
+<meta property="og:url" content="https://spoondle.app/">
+<meta property="og:image" content="https://spoondle.app/og.jpg?v=5">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -19,10 +20,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Spoondle — A letter-swapping word game">
 <meta name="twitter:description" content="Pair words, trade a letter, and find four answers.">
-<meta name="twitter:image" content="https://spoondle.zackabrams.com/og.jpg?v=5">
+<meta name="twitter:image" content="https://spoondle.app/og.jpg?v=5">
 <link rel="icon" href="favicon.ico" sizes="32x32"><link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script>/* Arriving from the old address (zackabrams.com/spoondle), the link carries that browser's saved puzzles and settings after the #. Keep any this address doesn't have yet. */try{const c=new URLSearchParams(location.hash.slice(1)).get('carry');if(c){for(const[k,v]of Object.entries(JSON.parse(c)))if(k.startsWith('spoondle-')&&typeof v==='string'&&localStorage.getItem(k)===null)localStorage.setItem(k,v);history.replaceState(null,'',location.pathname+location.search)}}catch{}</script>
+<script>/* Arriving from an old address (spoondle.zackabrams.com or zackabrams.com/spoondle), the link carries that browser's saved puzzles and settings after the #. Keep any this address doesn't have yet. */try{const c=new URLSearchParams(location.hash.slice(1)).get('carry');if(c){for(const[k,v]of Object.entries(JSON.parse(c)))if(k.startsWith('spoondle-')&&typeof v==='string'&&localStorage.getItem(k)===null)localStorage.setItem(k,v);history.replaceState(null,'',location.pathname+location.search)}}catch{}</script>
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, Lamplight in dark. */try{const t=localStorage.getItem('spoondle-theme');document.documentElement.dataset.theme=['oak','linen','lamp','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'lamp':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
