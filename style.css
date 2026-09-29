@@ -137,12 +137,12 @@ button{font:inherit;color:inherit}
 .clue b{color:var(--ink);font-weight:700;letter-spacing:.03em;margin-right:.4em}
 
 .shelf{position:relative;display:grid;grid-template-columns:auto auto auto;justify-content:space-evenly;gap:16px 12px;padding-block:4px}
-/* A dashed line between the columns: one word comes from each side. */
-.shelf::before{content:"";grid-column:2;grid-row:1 / span 4;justify-self:center;border-left:2px dashed var(--line);opacity:.7}
-.home:nth-child(odd){grid-column:1}
+/* A shallow tray under each column, pressed into the table. */
+.bed{margin:-8px -10px;border-radius:14px;background:color-mix(in srgb,var(--shadow) 22%,transparent);box-shadow:inset 0 2px 7px var(--shadow),inset 0 -1px 0 rgba(255,255,255,.12),0 1px 0 rgba(255,255,255,.14)}
+.shelf.finished .bed{display:none}
+@media (max-height:700px){.bed{margin-top:-4px}}   /* short screens: clear of the definition line above */.home:nth-child(odd){grid-column:1}
 .home:nth-child(even){grid-column:3}
 /* A finished board shows a check where its words were (gray if the answers were shown). */
-.shelf.finished::before{display:none}
 .shelf.finished::after,.mat.finished::after{content:"✓";position:absolute;inset:0;margin:auto;--ck:min(88px,calc(var(--shelf-s,34px)*2.6));width:var(--ck);height:var(--ck);border-radius:50%;display:grid;place-items:center;font:700 calc(var(--ck)*.57)/1 system-ui,sans-serif;color:var(--accent);background:var(--accent-soft);border:3px solid var(--accent);animation:check-in .5s cubic-bezier(.2,1.35,.45,1)}
 .given-up.finished::after{color:var(--muted);border-color:var(--muted);background:transparent}
 .mat.finished::after{display:none}
@@ -357,7 +357,7 @@ dialog p{margin:10px 0;line-height:1.5}
   .clue{min-height:1.3em;font-size:15px}
   .message{font-size:15px}
   .shelf{grid-row:4;grid-column:1;grid-template-columns:minmax(0,1fr) var(--matw) minmax(0,1fr);gap:14px 32px}
-  .shelf::before,.shelf.finished::after{display:none}
+  .shelf.finished::after{display:none}
   .mat.finished::after{display:grid;position:absolute;inset:0;margin:auto}
   .home:nth-child(odd){grid-column:1;justify-self:end}
   .home:nth-child(even){grid-column:3;justify-self:start}

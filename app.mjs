@@ -192,8 +192,11 @@ function build(save = true) {
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
   delete shelf.dataset.dim;   // a new board starts with nothing on the mat, so no column is faded
   const columns = [0, 1].map(c => p.cards.filter(card => card.column === c));
+  // Each column's words sit in their own shallow tray, so it's clear one word comes from each side.
+  // The trays come first, so the words paint over them; every word keeps its row, so they share the trays' rows.
+  for (const c of [1, 3]) { const bed = document.createElement('div'); bed.className = 'bed'; bed.style.gridArea = `1 / ${c} / span ${columns[0].length} / span 1`; shelf.append(bed); }
   for (let i = 0; i < columns[0].length; i++) for (const column of columns) {
-    const home = document.createElement('div'); home.className = 'home'; home.dataset.col = column[i].column; home.style.setProperty('--n', column[i].word.length); const w = makeWord(column[i]);
+    const home = document.createElement('div'); home.className = 'home'; home.dataset.col = column[i].column; home.style.gridRow = i + 1; home.style.setProperty('--n', column[i].word.length); const w = makeWord(column[i]);
     home.append(w); homeOf.set(w, home); shelf.append(home);
     if (solvedIds.has(w.dataset.id)) home.classList.add('done');
     // Tapping a word's empty spot on the table calls it back from the mat.
