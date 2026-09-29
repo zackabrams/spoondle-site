@@ -428,15 +428,16 @@ function solve(hit, [first, second]) {
 // Once the answer is spelled out, its letters close up and each word becomes one smooth tile.
 function fuse(merged) {
   const tiles = [...merged.querySelectorAll('.tile')];
-  const close = () => {
-    const words = [[]];
-    for (const el of merged.children) if (el.classList.contains('gap')) words.push(el, []); else words.at(-1).push(el.dataset.letter);
-    merged.replaceChildren(...words.map(w => Array.isArray(w) ? wordTile(w.join('')) : w));
-    if (!RM) for (const w of merged.querySelectorAll('.wordtile')) w.animate([{ scale: 1 }, { scale: 1.07 }, { scale: 1 }], { duration: 320, easing: 'ease-out' });
-  };
-  if (RM) { merged.style.setProperty('--gap', '0px'); close(); return; }
+  if (RM) { merged.style.setProperty('--gap', '0px'); fuseLetters(merged); return; }
   flip(tiles, () => merged.style.setProperty('--gap', '0px'), { duration: 240 });
-  setTimeout(close, 260);
+  setTimeout(() => fuseLetters(merged), 260);
+}
+// Swap a row of letter tiles (with a gap between words) for one word tile per word, with a little bounce.
+function fuseLetters(row) {
+  const words = [[]];
+  for (const el of row.children) if (el.classList.contains('gap')) words.push(el, []); else words.at(-1).push(el.dataset.letter);
+  row.replaceChildren(...words.map(w => Array.isArray(w) ? wordTile(w.join('')) : w));
+  if (!RM) for (const w of row.querySelectorAll('.wordtile')) w.animate([{ scale: 1 }, { scale: 1.07 }, { scale: 1 }], { duration: 320, easing: 'ease-out' });
 }
 function wordTile(text) {
   const w = document.createElement('div'); w.className = 'wordtile';
@@ -776,6 +777,10 @@ async function playDemo(card, run) {
     const [first, second] = ex.backwards ? [bottom, top] : [top, bottom], tiles = [...first.children, ...second.children];
     const answer = document.createElement('div'); answer.className = 'word solved'; answer.style.cssText = top.style.cssText;
     await demoMove(tiles, () => { answer.append(...first.children); if (ex.answer.includes(' ')) answer.append(makeGap()); answer.append(...second.children); stage.replaceChildren(answer); }, 850);
+    // Then, as in the game, the letters close up into one tile per word.
+    await demoPause(350); if (!alive()) return;
+    await demoMove(tiles, () => answer.style.setProperty('--gap', '0px'), 280);
+    fuseLetters(answer);
     if (ex.backwards) { const tag = document.createElement('span'); tag.textContent = 'Backwards!'; card.querySelector('.demo-note').replaceChildren(tag); }
     await demoPause(3000); if (!alive()) return;   // and time to read the answer
     await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.catch(() => {});
