@@ -413,6 +413,8 @@ dialog p{margin:10px 0;line-height:1.5}
 .controls{line-height:1.7}
 .controls>span+span{margin-top:10px}
 .as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
+/* In the game, Peek's soft fill sits on the table; here it sits on the dialog, so mix in the table's color to match. */
+.pill.soft.as-label{background:color-mix(in srgb,var(--panel) 50%,var(--table))}
 .together{white-space:nowrap}
 .tint{display:inline-block;padding:0 .32em;border-radius:5px;font-weight:650;line-height:1.35}
 .tint.swap{color:#3a2a08;background:linear-gradient(165deg,#fde6a8,#f6cf6c 55%,#e8b546);box-shadow:0 1.5px 0 #b0812a;animation:swappy 3.6s ease-in-out .8s infinite}
