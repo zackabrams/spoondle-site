@@ -262,7 +262,7 @@ function pill(label, onClick, primary = false) {
 const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>';
 // On a computer, pointing at Reveal (or tabbing to it) outlines the two tiles it would color.
 function revealPill() {
-  const b = pill('Reveal', showClue); b.insertAdjacentHTML('afterbegin', EYE);
+  const b = pill('Reveal', showClue); b.classList.add('soft'); b.insertAdjacentHTML('afterbegin', EYE);
   const preview = on => { if (!lastWrong) return;
     lastWrong.ids.forEach((id, i) => document.querySelector(`.tile[data-card="${id}"][data-index="${lastWrong.positions[i]}"]`)?.classList.toggle('previewed', on)); };
   b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') preview(true); });
