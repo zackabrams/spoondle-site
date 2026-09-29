@@ -379,7 +379,7 @@ function trade(a, b, lifted = null) {
   const unchanged = a.dataset.letter === b.dataset.letter, hit = unchanged ? null : tradeAnswer(puzzle(), ids, positions);
   busy = true;
   setTimeout(() => {
-    if (!hit) return nope(unchanged ? null : { ids, positions });
+    if (!hit) return nope({ ids, positions, unchanged });
     checkSwap(puzzle(), state(), ids, positions);
     finishRecord(puzzle(), record(), saved.completionDays);
     persist(); updateStats();
@@ -391,11 +391,11 @@ function nope(wrong) {
   slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 460 }));
   setTimeout(() => {
     const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
-    if (!wrong) return say(['Those letters match.']);
-    // A wrong trade is free. Its clue counts as a peek, and only once per trade.
+    // A wrong trade is free, even one of two matching letters. Its clue counts as a peek, and only once per trade.
+    const said = wrong.unchanged ? 'Those letters match.' : 'Not an answer.';
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
-    say(clued ? ['Not an answer.'] : ['Not an answer.', revealPill()]);
+    say(clued ? [said] : [said, revealPill()]);
   }, 1000);
 }
 function showClue() {

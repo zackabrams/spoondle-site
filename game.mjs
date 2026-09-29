@@ -53,8 +53,9 @@ export function checkSwap(puzzle, state, ids, positions) {
   if (state.columnById[ids[0]] === state.columnById[ids[1]]) throw new Error('Choose one word from each column.');
   const used = usedIds(puzzle, state);
   if (ids.some(id => used.has(id))) throw new Error('That word has already been solved.');
-  if (words.every((w, i) => w === cardFor(puzzle, ids[i]).word)) return { correct: false, unchanged: true, words };
-  const answer = matchAnswer(puzzle, ids, words);
+  // Trading two matching letters changes nothing, but it can still be peeked at, like any other miss.
+  const unchanged = words.every((w, i) => w === cardFor(puzzle, ids[i]).word);
+  const answer = unchanged ? null : matchAnswer(puzzle, ids, words);
   if (answer) {
     state.solved.push(answer.ids);
     return { correct: true, index: state.solved.length - 1, words, label: answer.label, clue: answer.clue };
@@ -69,7 +70,7 @@ export function checkSwap(puzzle, state, ids, positions) {
     state.feedback[id][positions[i]] = status;
     return { id, index: positions[i], status };
   });
-  return { correct: false, repeated, words, feedback };
+  return { correct: false, repeated, unchanged, words, feedback };
 }
 // A hint shows the letter to swap on one unsolved card whose swap tile isn't showing yet.
 export function hintTargets(puzzle, state) {
