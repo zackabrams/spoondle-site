@@ -1,4 +1,4 @@
-import { labelFor, answerDigest, tileOffset, openText } from './seal.mjs';
+import { labelsFor, answerDigest, tileOffset, openText } from './seal.mjs';
 const cardFor = (puzzle, id) => puzzle.cards.find(c => c.id === id);
 export function swapIndex(puzzle, id) {
   const card = cardFor(puzzle, id), length = card.word.length;
@@ -34,9 +34,11 @@ export function swapWords(puzzle, ids, positions) {
 // Tries both reading orders of the traded words against the answer fingerprints.
 function matchAnswer(puzzle, ids, words) {
   for (const order of [[0, 1], [1, 0]]) {
-    const ordered = order.map(i => ids[i]), label = labelFor(puzzle.category, order.map(i => words[i]));
-    const answer = puzzle.answers.find(a => a.digest === answerDigest(puzzle.key, ordered, label));
-    if (answer) return { ids: ordered, label, clue: openText(label, answer.clue) };
+    const ordered = order.map(i => ids[i]);
+    for (const label of labelsFor(order.map(i => words[i]))) {
+      const answer = puzzle.answers.find(a => a.digest === answerDigest(puzzle.key, ordered, label));
+      if (answer) return { ids: ordered, label, clue: openText(label, answer.clue) };
+    }
   }
   return null;
 }

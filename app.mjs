@@ -1,6 +1,6 @@
 import { puzzles } from './puzzles.mjs';
 import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint } from './game.mjs';
-import { LAUNCH, iso, today, addDays, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
+import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
 import { access } from './access.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
 import { localDay, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
@@ -19,8 +19,11 @@ let saved = { records: {}, completionDays: [], current: null };
 try { saved = readProgress(localStorage); } catch {}
 const keys = puzzles.map(puzzleKey);
 let records = puzzles.map((p, i) => restoreRecord(p, saved.records[keys[i]]));
-const requestedKey = new URL(location.href).searchParams.get('p');
-let board = Math.max(0, keys.indexOf(requestedKey || saved.current));
+// Today's puzzle is the newest one out; later ones stay hidden until their day.
+const latest = Math.max(0, Math.min(puzzles.length - 1, daysBetween(LAUNCH, today())));
+// Open on today's puzzle, or on an earlier one named in the link (?p=).
+const requested = keys.indexOf(new URL(location.href).searchParams.get('p'));
+let board = requested >= 0 && requested <= latest ? requested : latest;
 const puzzle = () => puzzles[board], record = () => records[board], state = () => records[board].state;
 function persist() {
   saved.current = keys[board]; records.forEach((r, i) => { saved.records[keys[i]] = r; });
@@ -197,7 +200,7 @@ function build(save = true) {
   syncClocks();
   $('category').textContent = p.category; $('level').hidden = !p.difficulty; $('level').textContent = p.difficulty ?? ''; $('level').dataset.level = (p.difficulty ?? '').toLowerCase();
   $('count').textContent = `${monthDay(dayOf(board))}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
-  $('prev').disabled = board === 0; $('next').disabled = board === puzzles.length - 1;
+  $('prev').disabled = board === 0; $('next').disabled = board >= latest;
   const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url);
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
   delete shelf.dataset.dim;   // a new board starts with nothing on the mat, so no column is faded
@@ -251,7 +254,7 @@ function sizeTiles() {
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
 }
 function goTo(index) {
-  if (busy || index < 0 || index >= puzzles.length) return;
+  if (busy || index < 0 || index > latest) return;
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   const direction = Math.sign(index - board);
   board = index; build();
@@ -259,7 +262,7 @@ function goTo(index) {
   if (!RM && direction) $('play-area').animate([{ transform: `translateX(${direction * 56}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
 }
 function nextUnfinished() {
-  for (let step = 1; step < puzzles.length; step++) { const i = (board + step) % puzzles.length; if (records[i].finishedAt === null) return i; }
+  for (let step = 1; step <= latest; step++) { const i = (board + step) % (latest + 1); if (records[i].finishedAt === null) return i; }
   return -1;
 }
 

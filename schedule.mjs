@@ -1,5 +1,5 @@
 // Which day each puzzle belongs to. The boards run one a day from LAUNCH, in order; a daily game adds a board a day.
-export const LAUNCH = '2026-09-21';
+export const LAUNCH = '2026-09-20';
 const DAY_MS = 864e5;
 const pad = n => String(n).padStart(2, '0');
 // Noon, so a daylight-saving change never tips a date into the day before or after.
