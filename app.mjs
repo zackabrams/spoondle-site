@@ -657,7 +657,7 @@ document.addEventListener('keydown', e => {
 
 // ---------- header buttons, dialogs, and the page lifecycle ----------
 // ---------- tables: the picker, and Lamplight's shadows ----------
-const THEMES = [['oak', 'Kitchen table'], ['linen', 'Linen & cork'], ['lamp', 'Lamplight'], ['felt', 'Card table'], ['light', 'Light'], ['dark', 'Dark']];
+const THEMES = [['oak', 'Kitchen table'], ['linen', 'Linen & cork'], ['lamp', 'Lamplight'], ['felt', 'Card table'], ['light', 'Simple Light'], ['dark', 'Simple Dark']];
 const THEME_COLOR = { oak: '#c68b49', linen: '#e6dfd2', lamp: '#241710', felt: '#1c5a40', light: '#dfe4ee', dark: '#121827' };
 const systemTheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'lamp' : 'oak';
 const theme = () => document.documentElement.dataset.theme;
