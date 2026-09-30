@@ -34,9 +34,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=1vhdixmb">
+<link rel="stylesheet" href="style.css?v=2cwti4fi">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=56t5si7d","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=1nlkfis0"}}</script>
-<script type="module" src="app.mjs?v=1zw4wk8i"></script>
+<script type="module" src="app.mjs?v=179bqbe3"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater!" width="2000" height="1050"></div>
@@ -109,7 +109,7 @@
   <div class="setting" id="a2hs-setting" hidden><span><strong>Add to Home Screen</strong><small id="a2hs-note">Open Spoondle like an app.</small></span><button id="a2hs-btn" class="icon-btn" type="button" aria-label="Add to Home Screen" aria-expanded="false"></button></div>
   <h3 class="section-label">Table theme</h3>
   <div class="swatches" id="swatches"></div>
-  <p class="fine privacy"><strong>Privacy:</strong> your progress and stats stay on this device. No accounts, no ads, no cookies. Plays are counted anonymously, and not at all if your browser sends Do Not Track.</p>
+  <p class="fine privacy"><strong>Privacy:</strong> your progress and stats stay on this device. No accounts, no ads, no cookies.</p>
 </dialog>
 <dialog id="archive-dialog" class="sheet" aria-labelledby="archive-title">
   <div class="dialog-top"><h2 id="archive-title">Archive</h2><button class="close-button" data-close="archive-dialog" aria-label="Close">×</button></div>

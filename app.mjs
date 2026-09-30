@@ -907,12 +907,16 @@ $('relax').addEventListener('click', () => {
   if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock.' : 'Timer mode on.']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
-// When How to play runs past the screen, a fade and arrow at its foot (see the CSS) say there is more below; they clear at the end.
+// A menu that runs past the screen shows a fade and arrow at its foot (see the CSS) until you reach the end.
 const helpSheet = $('help-dialog');
-const helpMore = () => helpSheet.toggleAttribute('data-more', helpSheet.scrollHeight - helpSheet.scrollTop - helpSheet.clientHeight > 12);
-helpSheet.addEventListener('scroll', helpMore, { passive: true });
-addEventListener('resize', helpMore);
-function openHelp() { track('open', { n: 'help' }); helpSheet.showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); helpMore(); }
+for (const d of document.querySelectorAll('dialog')) {
+  const more = () => d.toggleAttribute('data-more', d.open && d.scrollHeight - d.scrollTop - d.clientHeight > 12);
+  let queued = 0; const soon = () => { cancelAnimationFrame(queued); queued = requestAnimationFrame(more); };
+  d.addEventListener('scroll', more, { passive: true });
+  new MutationObserver(soon).observe(d, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['open', 'hidden'] });
+  addEventListener('resize', soon);
+}
+function openHelp() { track('open', { n: 'help' }); helpSheet.showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); }
 // How to play: the timer line flips between the two modes, as the header button does.
 let modeTimer = 0;
 function cycleModes(on) {
