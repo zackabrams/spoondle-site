@@ -103,7 +103,7 @@ function showStartGate() {
 function startPuzzle() {
   if (record().startedAt !== null) return;
   record().startedAt = Date.now();
-  unpile(); showStartGate(); refreshClocks();
+  unpile(); showStartGate(); refreshClocks(); focusNext(true);   // the Start button is going away
 }
 // Before Start, the tiles lie face up in a jumbled heap in the middle of the table.
 function pileUp() {
@@ -173,6 +173,38 @@ const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
 const GEAR = icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>');
 const TABLE = icon('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
+// Mat position: above the tile trays (the default) or below them. Above, the instruction line sits between the mat and the trays.
+// The page is reordered (not just restyled) so the Tab order and a screen reader follow what is on screen. It applies to the
+// stacked layout; where the mat sits between two columns of tiles (wide windows) or beside them (sideways), it has no effect.
+const MAT_BELOW = icon('<rect x="3.5" y="4" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="4" width="4.5" height="4.5" rx="1"/><rect x="16" y="4" width="4.5" height="4.5" rx="1"/><rect x="3.5" y="12.5" width="17" height="7.5" rx="2"/>');
+const MAT_ABOVE = icon('<rect x="3.5" y="4" width="17" height="7.5" rx="2"/><rect x="3.5" y="15.5" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="15.5" width="4.5" height="4.5" rx="1"/><rect x="16" y="15.5" width="4.5" height="4.5" rx="1"/>');
+let matTop = true;
+try { matTop = localStorage.getItem('spoondle-mat') !== 'below'; } catch {}
+// Where the mat sits between or beside the tile columns (wide windows, a phone turned sideways) the Mat position setting does not exist,
+// and the timer, Hint and Give up bar keeps its own place under the game. Same test as the CSS.
+const sideBySide = matchMedia('(min-width:1000px) and (min-height:600px), (orientation:landscape) and (max-height:500px)');
+const matSettingShown = () => !sideBySide.matches;
+// In the stacked layout the bar follows the last block on screen (the line under the mat, or the tile trays) instead of sitting at the
+// bottom of the screen, so Hint is a short reach away. It is moved in the page, not just restyled, so Tab and screen-reader order match.
+function placeParts() {
+  const side = document.querySelector('.side'), bar = document.querySelector('.bottom');
+  if (matTop) shelf.before(side); else shelf.after(side);
+  if (sideBySide.matches) $('play-area').after(bar); else (matTop ? shelf : side).after(bar);
+}
+sideBySide.addEventListener('change', () => { placeParts(); if (shelf.childElementCount) { sizeTiles(); pileUp(); } });
+function showMat() {
+  const b = $('matpos');
+  placeParts();
+  document.documentElement.classList.toggle('mat-top', matTop);
+  b.innerHTML = matTop ? MAT_ABOVE : MAT_BELOW; b.setAttribute('aria-pressed', String(matTop));
+  b.setAttribute('aria-label', matTop ? 'Mat position: above the tiles. Switch to below' : 'Mat position: below the tiles. Switch to above'); b.title = matTop ? 'Mat above the tiles' : 'Mat below the tiles';
+  $('mat-note').textContent = matTop ? 'Above the tiles.' : 'Below the tiles.';
+}
+$('matpos').addEventListener('click', () => {
+  matTop = !matTop; try { localStorage.setItem('spoondle-mat', matTop ? 'top' : 'below'); } catch {}
+  showMat(); clack('pick', .6);
+  if (shelf.childElementCount) { sizeTiles(); pileUp(); }
+});
 function showSound() { $('sound-note').textContent = soundOn ? 'Tiles click as you move them.' : 'Off.'; $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
 // Wake the audio whenever it isn't running: iOS leaves it 'interrupted', not 'suspended', after a call or an app switch.
 function ctx() { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state !== 'running') audio.resume().catch(() => {}); return audio; }
@@ -209,7 +241,7 @@ const homeOf = new Map();
 let slots = [], busy = false, press = null, drag = null, picked = null, lastSwap = null, lastWrong = null;
 function makeTile(ch, card = null, index = 0) {
   const t = document.createElement('div'); t.className = 'tile'; t.textContent = ch; t.dataset.letter = ch;
-  if (card) { t.dataset.card = card; t.dataset.index = index; t.setAttribute('role', 'button'); t.tabIndex = 0; t.setAttribute('aria-label', ch); }
+  if (card) { t.dataset.card = card; t.dataset.index = index; }
   return t;
 }
 function makeGap() { const g = document.createElement('div'); g.className = 'gap'; return g; }
@@ -225,9 +257,52 @@ function paintFeedback() {
     // A solved pair drops its hint and peek colors, so the answer glows evenly.
     const status = solved.has(t.dataset.card) ? null : feedback[t.dataset.card]?.[t.dataset.index];
     if (status) t.dataset.status = status; else delete t.dataset.status;
-    t.setAttribute('aria-label', t.dataset.letter + (status === 'swap' ? ', swap this letter' : status === 'stay' ? ', leave this letter' : ''));
+  }
+  for (const word of homeOf.keys()) labelWord(word);
+}
+// ---------- assistive technology: a word is the unit, its letters are reached with the arrow keys ----------
+// On the table a word is ONE button ("PARRY, spelled P A R R Y, left column"), so a screen reader (or the Tab key) meets 8 words
+// rather than 37 loose letters. On the mat it becomes a group whose letters are buttons: one tab stop per word, arrows between
+// letters, Enter or a tap to pick one, then a letter in the other word to trade. Sighted mouse and touch play is unchanged.
+const SIDE = ['left', 'right'];
+let usingKeyboard = false;
+function labelWord(word) {
+  const home = homeOf.get(word), tiles = [...word.children].filter(t => t.classList.contains('tile')), letters = tiles.map(t => t.dataset.letter);
+  const clear = el => { el.removeAttribute('role'); el.removeAttribute('tabindex'); el.removeAttribute('aria-label'); el.removeAttribute('aria-pressed'); };
+  if (!home || home.classList.contains('done')) { clear(word); tiles.forEach(clear); return; }
+  const status = t => t.dataset.status === 'swap' ? ', swap this letter' : t.dataset.status === 'stay' ? ', leave this letter' : '';
+  if (word.closest('.slot')) {
+    // On the mat: a group of letter buttons, with one of them (the one last used, else the first) in the tab order.
+    const current = tiles.find(t => t === document.activeElement) ?? tiles.find(t => t.getAttribute('tabindex') === '0') ?? tiles[0];
+    word.setAttribute('role', 'group'); word.removeAttribute('tabindex'); word.setAttribute('aria-label', `${letters.join('')} on the mat`);
+    tiles.forEach((t, i) => { t.setAttribute('role', 'button'); t.setAttribute('tabindex', t === current ? '0' : '-1'); t.setAttribute('aria-label', `${t.dataset.letter}, letter ${i + 1} of ${tiles.length}${status(t)}`); });
+  } else {
+    // On the table: one button. Its letters are presentational inside it, so what they show goes in the label.
+    const notes = tiles.flatMap((t, i) => t.dataset.status ? [`${t.dataset.status === 'swap' ? 'swap' : 'leave'} letter ${i + 1}, ${t.dataset.letter}`] : []);
+    word.setAttribute('role', 'button'); word.setAttribute('tabindex', '0');
+    word.setAttribute('aria-label', `${letters.join('')}, spelled ${letters.join(' ')}, ${SIDE[word.dataset.col]} column${notes.length ? '. Hint: ' + notes.join(', ') : ''}`);
+    tiles.forEach(clear);
   }
 }
+// Moving an element in the DOM drops keyboard focus, so put it back on what had it (or on its word's current letter).
+function refocus(had) {
+  if (!usingKeyboard || !had || had === document.body || !had.isConnected) return;
+  const word = had.classList.contains('word') ? had : had.closest('.word');
+  if (!word) return;
+  const target = had.getAttribute('tabindex') === '0' ? had : word.closest('.slot') ? word.querySelector('.tile[tabindex="0"]') : word;
+  if (target && document.activeElement !== target) target.focus({ preventScroll: true });
+}
+// After a solve or a start, keyboard focus lands on the next thing to play. It never takes focus from something the player has
+// already moved to (the last pair moves onto the mat on a timer, and the player may be navigating by then).
+function focusNext(force = false) {
+  if (!usingKeyboard) return;
+  const at = document.activeElement;
+  if (!force && at && at !== document.body && at.isConnected) return;
+  (document.querySelector('.slot .tile[tabindex="0"]') ?? document.querySelector('.shelf .word[role="button"]'))?.focus({ preventScroll: true });
+}
+function rove(tile) { for (const t of tile.parentNode.children) if (t.classList.contains('tile')) t.setAttribute('tabindex', t === tile ? '0' : '-1'); }
+document.addEventListener('focusin', e => { if (e.target.matches?.('.slot .tile')) rove(e.target); });
+document.addEventListener('pointerdown', () => { usingKeyboard = false; }, true);
 // Answers are written the way you'd write them: names and titles capitalized, everything else lowercase.
 // (Themes whose answers look like tiles or type set them in capitals anyway.)
 const MINOR = new Set(['A', 'AN', 'AND', 'AT', 'FOR', 'IN', 'OF', 'ON', 'THE', 'TO']);
@@ -270,7 +345,7 @@ function build(save = true) {
     home.append(w); homeOf.set(w, home); shelf.append(home);
     if (solvedIds.has(w.dataset.id)) home.classList.add('done');
     // Tapping a word's empty spot on the table calls it back from the mat.
-    home.addEventListener('click', () => { if (home.classList.contains('empty') && !busy && w.closest('.slot')) sendHome(w); });
+    home.addEventListener('click', () => { if (performance.now() - lastTap < 450) return; if (home.classList.contains('empty') && !busy && w.closest('.slot')) sendHome(w); });
     home.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === home && home.classList.contains('empty')) { e.preventDefault(); sendHome(w); } });
   }
   for (let i = 0; i < p.answers.length; i++) { const f = document.createElement('div'); f.className = 'found'; tray.append(f); }
@@ -360,7 +435,11 @@ function revealPill() {
   return b;
 }
 // Words on the message line sit on the same soft highlight as a definition, so they read over any table.
-function note(text) { const n = document.createElement('span'); n.className = 'note'; n.textContent = text; return n; }
+function note(text, spoken = '') {
+  const n = document.createElement('span'); n.className = 'note'; n.textContent = text;
+  if (spoken) { const s = document.createElement('span'); s.className = 'sr-only'; s.textContent = spoken + ' '; n.prepend(s); }   // read aloud, not shown
+  return n;
+}
 function say(parts = null) {
   queueMicrotask(coachUpdate);
   const done = record().finishedAt !== null;
@@ -388,7 +467,9 @@ function say(parts = null) {
   }
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
   const n = slots.filter(slot => slot.querySelector('.word')).length;
-  message.replaceChildren(note(n === 0 ? 'Drag a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Drag a letter onto the other word.'));
+  const onMat = slots.map(slot => slot.querySelector('.word')).filter(Boolean).map(text);
+  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Trade a letter: drag it, or tap two.',
+    n === 1 ? `${onMat[0]} is on the mat.` : n === 2 ? `${onMat.join(' and ')} are on the mat.` : ''));
 }
 
 // ---------- motion: move elements in the DOM, then animate each from where it was ----------
@@ -442,6 +523,7 @@ function markHome(word, away) {
   const home = homeOf.get(word), empty = away && !lastPair(); home.classList.toggle('empty', empty);
   if (empty) { home.tabIndex = 0; home.setAttribute('role', 'button'); home.setAttribute('aria-label', `Put ${text(word)} back`); }
   else { home.removeAttribute('tabindex'); home.removeAttribute('role'); home.removeAttribute('aria-label'); }
+  labelWord(word);
 }
 
 // ---------- the rules: words go to the mat; letters trade between the two words there ----------
@@ -451,17 +533,21 @@ function placeWord(word, lifted = null, at = null) {
   ensureStarted();
   const side = +word.dataset.col, old = wordOn(side), turn = !!at && at !== slots[side];
   if (old === word) { if (lifted) snapBack(lifted); return; }
+  const had = document.activeElement;
   flip([word, old, turn && wordOn(1 - side)].filter(Boolean), () => {
     if (old) { homeOf.get(old).append(old); markHome(old, false); }
     slots[side].append(word); markHome(word, true); syncSlots();
     if (turn) mat.classList.toggle('flipped');
   }, { lifted });
+  refocus(had);
   clack('place'); lastWrong = null; say();
 }
 function sendHome(word, lifted = null) {
   if (lastPair()) { if (lifted) snapBack(lifted); return; }
   if (picked) { picked.classList.remove('picked'); picked = null; }
+  const had = document.activeElement;
   flip([word], () => { homeOf.get(word).append(word); markHome(word, false); syncSlots(); }, { lifted });
+  refocus(had);
   clack('place', .8); lastWrong = null; say();
 }
 function trade(a, b, lifted = null) {
@@ -469,7 +555,9 @@ function trade(a, b, lifted = null) {
   ensureStarted();
   const wa = a.parentNode, wb = b.parentNode;
   const ids = [wa.dataset.id, wb.dataset.id], positions = [+a.dataset.index, +b.dataset.index];
+  const had = document.activeElement;
   flip([a, b], () => domSwap(a, b), { lifted });
+  labelWord(wa); labelWord(wb); refocus(had);
   clack('place'); lastSwap = [a, b]; lastWrong = null;
   const unchanged = a.dataset.letter === b.dataset.letter, hit = unchanged ? null : tradeAnswer(puzzle(), ids, positions);
   busy = true;
@@ -485,7 +573,8 @@ function nope(wrong) {
   clack('nope', .7);
   slots.forEach(slot => slot.querySelector('.word')?.animate([{ rotate: '0deg' }, { rotate: '-2.5deg' }, { rotate: '2deg' }, { rotate: '-1deg' }, { rotate: '0deg' }], { duration: 460 }));
   setTimeout(() => {
-    const [a, b] = lastSwap; flip([a, b], () => domSwap(a, b)); clack('place', .5); busy = false;
+    const [a, b] = lastSwap, had = document.activeElement;
+    flip([a, b], () => domSwap(a, b)); labelWord(a.parentNode); labelWord(b.parentNode); refocus(had); clack('place', .5); busy = false;
     // A wrong trade is free, even one of two matching letters. Its clue counts as a peek, and only once per trade.
     const said = wrong.unchanged ? 'Those letters match.' : 'Not an answer.';
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
@@ -549,6 +638,7 @@ function placeLastPair(delay = 0) {
     if (busy || drag || !w.isConnected || w.closest('.slot')) return;
     placeWord(w);
   }, delay + i * 160));
+  if (waiting.length) setTimeout(focusNext, delay + waiting.length * 160 + 60);
 }
 // A found answer's definition goes on the line under the answers. Tapping any found answer shows its own.
 function define(hit) {
@@ -576,7 +666,7 @@ function flyToTray(merged, hit) {
     const done = record().finishedAt !== null;
     if (!practice) $('count').textContent = `${monthDay(dayOf(board))}${done ? ' ✓' : ''}`;
     define(hit); say();
-    if (done) celebrate(); else placeLastPair(RM ? 0 : 450);
+    if (done) { celebrate(); if (usingKeyboard) message.querySelector('.pill.primary')?.focus({ preventScroll: true }); } else { placeLastPair(RM ? 0 : 450); focusNext(); }
   };
   if (RM) { finish(); return; }
   merged.animate([
@@ -632,13 +722,25 @@ function celebrate() {
 }
 
 // ---------- taps: a word on the table hops onto the mat ----------
-function tap({ word, onMat }) { if (!onMat) placeWord(word); }
-// Keyboard players pick one letter, then another, to trade them.
+// A tap that moves a word off the table is followed by the browser's own click, aimed at whatever is under the finger by then,
+// which can be the word's now-empty spot (that click means "put it back"). Clicks right after a tap are not meant.
+let lastTap = 0;
+function tap({ word, onMat, tile }) { lastTap = performance.now(); if (onMat) pickLetter(tile); else placeWord(word); }
+// Trading without dragging (keys, a tap, a screen reader's activate): pick one letter, then a letter in the other word.
+function unpick() { if (picked) { picked.classList.remove('picked'); picked.removeAttribute('aria-pressed'); picked = null; } }
+function pick(tile) {
+  unpick(); picked = tile; tile.classList.add('picked'); tile.setAttribute('aria-pressed', 'true'); clack('pick');
+  const word = tile.closest('.word');
+  // One short line on screen (a longer one wraps on small phones and shifts what is below it); the full sentence is for a screen reader.
+  const line = note('Now the other word.', `${tile.dataset.letter} in ${text(word)} picked.`);
+  say(lastWrong ? [line, revealPill()] : [line]);   // a wrong trade's Peek stays on offer
+}
 function pickLetter(tile) {
-  if (!picked) { picked = tile; tile.classList.add('picked'); clack('pick'); return; }
-  const a = picked; a.classList.remove('picked'); picked = null;
-  if (a === tile) return;
-  if (a.parentNode === tile.parentNode) { picked = tile; tile.classList.add('picked'); clack('pick'); return; }
+  if (!picked) return pick(tile);
+  const a = picked;
+  if (a === tile) { unpick(); return say(lastWrong ? ['Put down.', revealPill()] : null); }
+  if (a.parentNode === tile.parentNode) return pick(tile);
+  unpick();
   if (wordOn(0) && wordOn(1)) trade(a, tile);
 }
 
@@ -731,12 +833,22 @@ function finish(e, cancelled) {
 document.addEventListener('pointerup', e => finish(e, false));
 document.addEventListener('pointercancel', e => finish(e, true));
 document.addEventListener('keydown', e => {
-  const tile = e.target.closest?.('.shelf .tile, .slot .tile');
-  if (!tile || busy) return;
-  const word = tile.closest('.word'), onMat = !!tile.closest('.slot');
-  if (onMat && (e.key === 'Escape' || e.key === 'Backspace')) { e.preventDefault(); return sendHome(word); }
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  e.preventDefault(); return onMat ? pickLetter(tile) : placeWord(word);
+  usingKeyboard = true;
+  if (busy) return;
+  const key = e.key, activate = key === 'Enter' || key === ' ';
+  // A word on the table is one button: Enter puts it on the mat.
+  if (activate && e.target.matches?.('.shelf .word[role="button"]')) { e.preventDefault(); return placeWord(e.target); }
+  const tile = e.target.closest?.('.slot .tile');
+  if (!tile) return;
+  const word = tile.closest('.word'), tiles = [...word.children].filter(t => t.classList.contains('tile')), i = tiles.indexOf(tile);
+  if (key === 'Escape' || key === 'Backspace') { e.preventDefault(); return sendHome(word); }
+  if (activate) { e.preventDefault(); return pickLetter(tile); }
+  // Arrows: along the word, and up or down to the same place in the other word.
+  const other = slots.map(slot => slot.querySelector('.word')).find(w => w && w !== word), across = other && [...other.children].filter(t => t.classList.contains('tile'));
+  const target = key === 'ArrowRight' ? tiles[Math.min(i + 1, tiles.length - 1)] : key === 'ArrowLeft' ? tiles[Math.max(i - 1, 0)]
+    : key === 'Home' ? tiles[0] : key === 'End' ? tiles.at(-1)
+    : (key === 'ArrowDown' || key === 'ArrowUp') && across ? across[Math.min(i, across.length - 1)] : null;
+  if (target) { e.preventDefault(); target.focus(); }
 });
 
 // ---------- header buttons, dialogs, and the page lifecycle ----------
@@ -776,7 +888,7 @@ $('relax').addEventListener('click', () => {
   if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock.' : 'Timer mode on.']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
-function openHelp() { $('help-dialog').showModal(); refreshClocks(); startDemo(true); cycleModes(true); }
+function openHelp() { $('help-dialog').showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); }
 // How to play: the timer line flips between the two modes, as the header button does.
 let modeTimer = 0;
 function cycleModes(on) {
@@ -797,11 +909,11 @@ $('help-dialog').addEventListener('close', () => { demoRun++; cycleModes(false);
 // How to play: three example cards, flipped with a swipe or the arrows.
 const examples = $('example-track');
 const exampleShown = () => Math.round(examples.scrollLeft / (examples.clientWidth || 1));
-function flipExample(step) { examples.scrollTo({ left: (exampleShown() + step) * examples.clientWidth, behavior: RM ? 'auto' : 'smooth' }); }
+function flipExample(step) { exampleDir = step; examples.scrollTo({ left: (exampleShown() + step) * examples.clientWidth, behavior: RM ? 'auto' : 'smooth' }); }
 let demoTimer = 0;
 examples.addEventListener('scroll', () => {
   const i = exampleShown(); $('example-prev').disabled = i === 0; $('example-next').disabled = i === examples.children.length - 1;
-  clearTimeout(demoTimer); demoTimer = setTimeout(startDemo, 160);   // once the card settles, play it from the top
+  clearTimeout(demoTimer); demoTimer = setTimeout(() => { if (i !== exampleWas) { exampleDir = Math.sign(i - exampleWas) || exampleDir; exampleWas = i; } startDemo(); }, 160);   // once the card settles, play it from the top
 }, { passive: true });
 
 // Each example card plays its examples on a little mat, in the table's own tiles: the two words,
@@ -833,7 +945,7 @@ function demoMove(tiles, mutate, duration, lift = 0) {
 }
 async function playDemo(card, run) {
   const alive = () => run === demoRun && $('help-dialog').open, script = demoScript(card);
-  for (let k = 0; alive(); k = (k + 1) % script.length) {
+  for (let k = 0; k < script.length && alive(); k++) {
     const ex = script[k], { stage, rows: [top, bottom], s } = demoWords(card, ex);
     stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
     await demoPause(1500); if (!alive()) return;   // time to read the two words
@@ -858,6 +970,15 @@ async function playDemo(card, run) {
     await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.catch(() => {});
     stage.getAnimations().forEach(a => a.cancel());
   }
+  if (alive()) advanceExample();   // all three played: on to the next category
+}
+// The categories play in order (Words & phrases, Proper nouns, Sneaky splits), then back the other way, and so on. Swiping or the
+// arrows change the direction to the way you moved; the demo carries on from wherever you leave it.
+let exampleDir = 1, exampleWas = 0;
+function advanceExample() {
+  const last = examples.children.length - 1, at = exampleShown();
+  if (at + exampleDir < 0 || at + exampleDir > last) exampleDir = -exampleDir;
+  examples.scrollTo({ left: Math.max(0, Math.min(last, at + exampleDir)) * examples.clientWidth, behavior: RM ? 'auto' : 'smooth' });
 }
 function startDemo(fresh = false) {
   const run = ++demoRun;
@@ -1073,7 +1194,7 @@ const COACH = {
   solo: { text: '<b>FAIR PLAY!</b> The last pair moved onto the mat for you, and this one’s all yours. Hint and Peek are here if you need them.', ring: () => mat, free: true },
   done: { title: 'You’re ready', text: () => `Every day brings a new puzzle with four answers.<br>About those buttons on top:<ul class="coach-keys">${[
     ['help', 'Review the rules or replay this tutorial'], ['archive', 'Archive: access past puzzles'],
-    ['stats', 'Stats: review your prior performance'], ['theme', 'Settings: change game mode, toggle sound, or choose a new table theme']]
+    ['stats', 'Stats: review your prior performance'], ['theme', matSettingShown() ? 'Settings: change game mode, toggle sound, move the mat, or choose a new table theme' : 'Settings: change game mode, toggle sound, or choose a new table theme']]
     .map(([id, what]) => `<li><span class="icon-btn as-icon">${$(id).innerHTML}</span>${what}</li>`).join('')}</ul>`,
     ring: () => document.querySelector('.top .tools'), center: true, go: 'Play today’s puzzle', alt: 'Pick a table' },
 };
@@ -1215,7 +1336,7 @@ function welcome() {
     setTimeout(() => { if (!splash.classList.contains('shown')) leave(); }, 2500);   // never wait long on a slow connection
   });
 }
-buildPicker(); applyTheme(theme()); showSound(); showRelax(); build();
+buildPicker(); applyTheme(theme()); showSound(); showRelax(); showMat(); build();
 // A first visit starts with the practice puzzle (How to play is always a tap away); ?practice replays it.
 let practiceSeen = true; try { practiceSeen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
 if (!helpSeen && !practiceSeen) welcome().then(startPractice);
