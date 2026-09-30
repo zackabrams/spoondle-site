@@ -91,8 +91,6 @@ html,body,dialog,::backdrop{touch-action:manipulation}
 body{margin:0;background:var(--table-art),var(--table);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 [hidden]{display:none!important}
-/* On a Home Screen app, iOS 26 blurs the top of the page unless a fixed box with a flat color covers the notch area (0 tall in a browser tab). The textured copy of the table did not stop it, so this is a flat color. */
-.status-fill{position:fixed;inset:0 0 auto 0;height:env(safe-area-inset-top);background:var(--table);pointer-events:none;z-index:40}
 .app{max-width:440px;min-height:100%;margin:0 auto;padding-inline:16px;padding-block:max(14px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px}
 :is(button,a,.tile,.home,.word[role=button]):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
@@ -687,3 +685,5 @@ dialog.sheet{max-width:440px}
 .a2hs-after svg{width:16px;height:16px;vertical-align:-3px;margin:0 1px}
 .a2hs-wrap{position:absolute;left:0;right:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:440px;margin-inline:auto}
 .has-a2hs .shelf.finished::after{opacity:0}
+/* On a Home Screen app, iOS 26 blurs about 40px under the status bar and nothing on a page can turn that off. Start the game below it. The min() makes the extra 40px appear only where there is a notch or status bar inset (none on desktop). */
+@media (display-mode: standalone){.app{padding-top:calc(env(safe-area-inset-top) + min(40px,env(safe-area-inset-top)*100))!important}}
