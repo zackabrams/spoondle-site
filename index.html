@@ -34,11 +34,12 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=157xl5ud">
+<link rel="stylesheet" href="style.css?v=2fvll4fy">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=56t5si7d","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=10bgw05w"}}</script>
 <script type="module" src="app.mjs?v=1ip1a4rq"></script>
 </head>
 <body>
+<div class="status-fill" aria-hidden="true"></div>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater!" width="2000" height="1050"></div>
 <script>/* First visit only (neither How to play nor the practice puzzle seen, even after arriving from an old address): the title card, then the practice puzzle. */try{if(localStorage.getItem('spoondle-help-seen-v2')===null&&localStorage.getItem('spoondle-practice-seen')===null){const s=document.getElementById('splash');s.firstElementChild.src='splash.webp?v=2';s.hidden=false}}catch{}</script>
 <div class="rotate" id="rotate" role="alert">
