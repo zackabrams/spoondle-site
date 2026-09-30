@@ -275,7 +275,7 @@ dialog p{margin:10px 0;line-height:1.5}
 /* Links in the fine print stay quiet: the text's own color, with a soft underline. */
 .fine a{color:inherit;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);text-underline-offset:.18em}
 .fine.privacy{margin:14px 0 0;line-height:1.45}
-#help-dialog .fine{line-height:1.4;margin-bottom:0}
+#help-dialog .fine{line-height:1.4;margin:14px 0 0;text-align:center}
 /* How to play may run a little taller than other sheets, so the buttons get room to breathe below the fine print. */
 #help-dialog{max-height:94dvh}
 #help-dialog .help-actions{margin-top:18px}
@@ -358,7 +358,7 @@ dialog p{margin:10px 0;line-height:1.5}
   .mat{gap:8px;padding:13px 12px calc(13px + var(--mat-s,50px) * .07);border-radius:16px}
   .slot{min-height:calc(var(--mat-s,50px) + 8px)}
   .found{height:36px}
-  .message{min-height:36px;font-size:13px}   /* room for a pill, so Reveal never shifts the layout */
+  .message{min-height:39px;font-size:13px}   /* room for a pill (38.1px tall), so Peek appearing never moves the tiles */
   .bottom{flex:none}
   
   #share-text{font-size:16px}
@@ -575,11 +575,13 @@ dialog.sheet{max-width:440px}
 
 /* How to play points to Settings, with the gear inline. */
 /* Centered on the words around it, not sitting on their baseline. */
-.settings-note .icon-btn.as-icon{margin-inline:.15em .3em;vertical-align:-3px}
+.settings-note{display:flex;align-items:center}
+.settings-note .icon-btn.as-icon{margin-inline:0 .3em;vertical-align:0}
 
 /* ---------- The practice puzzle's coach ---------- */
 .practicing .bottom .stats{visibility:hidden}
 .help-actions{display:grid;gap:10px}
+#help-dialog .help-actions{grid-template-columns:1fr 1.15fr}   /* Practice and Play share a row */
 .coach{position:fixed;z-index:60;left:50%;top:auto;bottom:max(14px,env(safe-area-inset-bottom));translate:-50% 0;transition:top .3s ease;width:min(calc(100% - 24px),400px);display:grid;gap:8px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);box-shadow:0 14px 40px var(--shadow);font-size:15px;line-height:1.45}
 .coach[style*="top"]{bottom:auto}
 .coach.centered{top:50%;bottom:auto;translate:-50% -50%}
