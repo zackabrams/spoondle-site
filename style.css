@@ -686,4 +686,4 @@ dialog.sheet{max-width:440px}
 .a2hs-wrap{position:absolute;left:0;right:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:440px;margin-inline:auto}
 .has-a2hs .shelf.finished::after{opacity:0}
 /* On a Home Screen app, iOS 26 blurs about 40px under the status bar and nothing on a page can turn that off. Start the game below it. The min() makes the extra 40px appear only where there is a notch or status bar inset (none on desktop). */
-@media (display-mode: standalone){.app{padding-top:calc(env(safe-area-inset-top) + min(40px,env(safe-area-inset-top)*100))!important}}
+.home-app .app{padding-top:calc(env(safe-area-inset-top) + min(40px,env(safe-area-inset-top)*100))!important}

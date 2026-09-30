@@ -31,10 +31,11 @@
 <link rel="icon" href="favicon.ico" sizes="32x32"><link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script>/* Arriving from an old address (spoondle.zackabrams.com or zackabrams.com/spoondle), the link carries that browser's saved puzzles and settings after the #. Keep any this address doesn't have yet. */try{const c=new URLSearchParams(location.hash.slice(1)).get('carry');if(c){for(const[k,v]of Object.entries(JSON.parse(c)))if(k.startsWith('spoondle-')&&typeof v==='string'&&localStorage.getItem(k)===null)localStorage.setItem(k,v);history.replaceState(null,'',location.pathname+location.search)}}catch{}</script>
+<script>/* Mark the page when it runs as a Home Screen app, so the style sheet can start the game below the status bar blur iOS adds there. */try{if(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)document.documentElement.classList.add('home-app')}catch{}</script>
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=ns8no1sr">
+<link rel="stylesheet" href="style.css?v=1kd1bhpt">
 <script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=56t5si7d","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=10bgw05w"}}</script>
 <script type="module" src="app.mjs?v=12qk2992"></script>
 </head>
