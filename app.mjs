@@ -666,6 +666,9 @@ function placeLastPair(delay = 0) {
   if (r.startedAt === null || r.finishedAt !== null || state().solved.length !== puzzle().answers.length - 1) return;
   for (const w of homeOf.keys()) if (w.closest('.slot')) markHome(w, true);   // a word already on the mat loses its outline
   const waiting = [...homeOf.keys()].filter(w => !homeOf.get(w).classList.contains('done') && !w.closest('.slot'));
+  // In the practice round the mat may still be turned from the flip step; WELD goes on top so the trade reads WELL DONE.
+  const weld = practice && onTable('WELD');
+  if (weld && waiting.includes(weld)) mat.classList.toggle('flipped', weld.dataset.col === '1');
   waiting.forEach((w, i) => setTimeout(() => {
     if (busy || drag || !w.isConnected || w.closest('.slot')) return;
     placeWord(w);
