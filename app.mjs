@@ -497,7 +497,7 @@ function say(parts = null) {
     if (spoken) { const s = document.createElement('span'); s.className = 'sr-only'; s.textContent = spoken; message.replaceChildren(s); }
     return;
   }
-  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat' : n === 1 ? 'Now one from the other side' : 'Trade a letter: Drag it, or tap two', spoken));
+  message.replaceChildren(note(n === 0 ? 'Put a word on the mat with a tap or drag' : n === 1 ? 'Now choose one from the other side' : 'Trade a letter by tapping two or dragging', spoken));
 }
 
 // ---------- motion: move elements in the DOM, then animate each from where it was ----------
@@ -762,13 +762,13 @@ function pick(tile) {
   unpick(); picked = tile; tile.classList.add('picked'); tile.setAttribute('aria-pressed', 'true'); clack('pick');
   const word = tile.closest('.word');
   // One short line on screen (a longer one wraps on small phones and shifts what is below it); the full sentence is for a screen reader.
-  const line = note('Now the other word', `${tile.dataset.letter} in ${text(word)} picked.`);
+  const line = note('Now tap a letter to trade with', `${tile.dataset.letter} in ${text(word)} picked.`);
   say(lastWrong ? [line, revealPill()] : [line]);   // a wrong trade's Peek stays on offer
 }
 function pickLetter(tile) {
   if (!picked) return pick(tile);
   const a = picked;
-  if (a === tile) { unpick(); return say(lastWrong ? ['Put down', revealPill()] : null); }
+  if (a === tile) { unpick(); return say(lastWrong ? [revealPill()] : null); }
   if (a.parentNode === tile.parentNode) return pick(tile);
   unpick();
   if (wordOn(0) && wordOn(1)) trade(a, tile);
