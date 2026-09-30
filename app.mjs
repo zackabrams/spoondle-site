@@ -1302,9 +1302,9 @@ function coachStep() {
 const COACH = {
   intro: { title: 'Let’s play a practice round', text: 'A short puzzle to learn the moves. It won’t count toward your stats.', go: 'Let’s go' },
   left: { text: 'Drag <b>FOOT</b> onto the mat.', from: () => onTable('FOOT'), to: () => mat, place: true },
-  right: { text: 'Now drag <b>CARD</b> onto the mat. The answers are always made up of one word from each column.', from: () => onTable('CARD'), to: () => mat, place: true },
+  right: { text: 'Now let’s find <b>FOOT</b>’s partner. Maybe it’s <b>CARD</b>? Drag it onto the mat.', from: () => onTable('CARD'), to: () => mat, place: true },
   swap: { text: 'Trade one letter between them: Drag the <b>T</b> onto the <b>D</b>.', from: () => tileOf(onTable('FOOT'), 'T'), to: () => tileOf(onTable('CARD'), 'D') },
-  hint: { text: '<b>FOOD CART!</b> Not sure how to start? Tap <b>Hint</b>.', ring: () => $('hint'), lift: () => $('hint') },
+  hint: { text: '<b>FOOD CART!</b> Whenever you’re stuck, <b>Hint</b> lights up a letter to swap. Try&nbsp;it&nbsp;now.', ring: () => $('hint'), lift: () => $('hint') },
   hinted: { text: 'Hint lit up the <b>U</b> in <b>BUD</b>, so it wants to swap. Drag BUD onto the mat.', from: () => onTable('BUD'), to: () => mat, place: true },
   decoy: { text: () => `Which word goes with BUD? Try <b>${decoy().textContent}</b>.`, from: () => decoy(), to: () => mat, place: true },
   putBack: { text: () => `No swap turns BUD and ${decoy().textContent} into an answer, so they aren’t a pair. Put ${decoy().textContent} back: Drag it off the mat, or tap its empty spot.`, from: () => decoy(), to: () => homeOf.get(decoy()) },
