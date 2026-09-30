@@ -468,6 +468,7 @@ function say(parts = null) {
   $('actions').hidden = r.finishedAt !== null;
   // Once solved, the time shows in the solved line, so the bar with the clock steps aside to make room.
   document.querySelector('.bottom').hidden = r.finishedAt !== null;
+  document.documentElement.classList.toggle('is-done', r.finishedAt !== null);   // on a wide screen the page re-centers without that bar
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
   if (r.finishedAt !== null && practice) { message.append(note(s.revealed ? 'Answers shown.' : 'Practice puzzle solved!')); return; }
   if (r.finishedAt !== null) {

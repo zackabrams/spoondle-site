@@ -426,6 +426,7 @@ dialog[data-more]::after{opacity:1}
   .app{max-width:1320px;--matw:clamp(360px,34vw,520px)}
   .play-area{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:auto}
   .bottom{margin:4px 0 auto;justify-content:center}
+  .is-done .play-area{margin-bottom:auto}   /* the bar under the game is gone once solved: keep the game centered, not sunk to the bottom */
   .tray{width:min(100%,680px);justify-self:center;column-gap:16px}
   .clue{min-height:1.3em;font-size:15px}
   .message{font-size:15px}
