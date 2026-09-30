@@ -1322,7 +1322,7 @@ const COACH = {
     ['help', 'Review the rules or replay this tutorial'], ['archive', 'Archive: Access past puzzles'],
     ['stats', 'Stats: Review your prior performance'], ['theme', matSettingShown() ? 'Settings: Change game mode, toggle sound, move the mat, or choose a new table theme' : 'Settings: Change game mode, toggle sound, or choose a new table theme']]
     .map(([id, what]) => `<li><span class="icon-btn as-icon">${$(id).innerHTML}</span>${what}</li>`).join('')}</ul>`,
-    ring: () => document.querySelector('.top .tools'), center: true, go: 'Play today’s puzzle', alt: 'Pick a table' },
+    ring: () => document.querySelector('.top .tools'), go: 'Play today’s puzzle', alt: 'Pick a table' },
 };
 function coachUpdate() {
   if (!practice) return;
@@ -1343,8 +1343,8 @@ function coachUpdate() {
   });
   coach.card.querySelector('[data-coach="skip"]')?.addEventListener('click', () => { track('tutorial_skip', { n: step }); endPractice(); });
   coach.card.querySelector('[data-coach="alt"]')?.addEventListener('click', () => { track('tutorial_done', { n: 'table' }); endPractice(); $('theme').click(); });
-  // Cards with nothing to point at, and the closing tour, sit in the middle of the screen.
-  coach.card.classList.toggle('centered', !!c.center || (!c.from && !c.ring));
+  // Cards with nothing to point at sit in the middle of the screen.
+  coach.card.classList.toggle('centered', !c.from && !c.ring);
   // A button the step asks for (Hint, Peek) rises above the dimming too.
   document.querySelectorAll('.coach-lift').forEach(el => el.classList.remove('coach-lift'));
   c.lift?.()?.classList.add('coach-lift');
@@ -1388,7 +1388,7 @@ function coachFrame(now) {
     const [x, y, w, h] = coach.box.map(v => Math.round(v));
     coach.ring.style.translate = `${x}px ${y}px`; coach.ring.style.width = `${w}px`; coach.ring.style.height = `${h}px`;
   } else coach.box = null;
-  placeCard(r);
+  placeCard();
   const show = from && to && !busy && !drag && !RM;
   coach.finger.hidden = !show;
   if (!show) return;
@@ -1401,43 +1401,64 @@ function coachFrame(now) {
   coach.finger.style.opacity = t < .08 ? t / .08 : t > .75 ? Math.max(0, 1 - (t - .75) / .1) : 1;
   coach.finger.style.scale = t > .1 && t < .7 ? '.85' : '1';
 }
-// The card aims for the middle of the screen but stays a little above everything the step points at (the words or
-// letters to move, where they go, the mat), so it never covers what the player has to touch. If there's no room above,
-// it drops below; on a short sideways screen it slides to the side instead. It also keeps clear of the header and
-// title rows where it would overlap them (phones).
-function placeCard(r) {
+// The card sits as close to the move as it can (the middle of the screen when the step is a button) without covering
+// what matters: what the step points at, where it goes and the way between (so nothing has to be dragged across the
+// card), and words on the mat. On the step right after a pair is found, the new answer and its definition stay in view
+// too. When the full-width card has no clear spot, a narrower one can sit over the other column of tiles, beside the
+// move. It keeps clear of the header and title rows, and covers the least important thing only when nothing else fits.
+// The steps that open right after a pair is found, while its answer is new on the sheet.
+const JUST_FOUND = ['hint', 'third', 'solo', 'done'];
+function placeCard() {
   const card = coach.card;
-  if (card.classList.contains('centered')) { card.style.top = card.style.left = ''; coach.cardY = coach.cardX = null; return; }
+  if (card.classList.contains('centered')) { card.style.top = card.style.left = card.style.width = ''; coach.cardY = coach.cardX = null; return; }
   if (drag) return;
-  const m = 12, h = card.offsetHeight, w = card.offsetWidth, c = COACH[coach.step], cy = (innerHeight - h) / 2;
-  const rects = [c.from?.(), c.to?.(), c.ring?.(), mat].filter(Boolean).map(el => el.getBoundingClientRect());
-  const rows = [['.top', ['.brand', '.tools']], ['.board-bar', ['.cat', '.nav']]];
-  // The lowest the card may start at, given where it sits sideways.
-  const floorAt = x0 => rows.reduce((min, [row, parts]) => {
-    const blocked = parts.some(sel => { const b = document.querySelector(`${row} ${sel}`)?.getBoundingClientRect(); return b && b.width && b.right > x0 && b.left < x0 + w; });
-    return blocked ? Math.max(min, document.querySelector(row).getBoundingClientRect().bottom + 8) : min;
-  }, m);
-  const middle = (innerWidth - w) / 2;
+  const c = COACH[coach.step], m = 12;
+  const keep = (el, weight) => { const r = el?.getBoundingClientRect?.() ?? el; return r?.width ? { l: r.left - 8, t: r.top - 8, r: r.left + r.width + 8, b: r.top + r.height + 8, weight } : null; };
+  // The way a word or letter travels: its own width, from where it is to the middle of where it goes.
+  const a = c.from?.()?.getBoundingClientRect(), b = c.to?.()?.getBoundingClientRect();
+  const bx = b && b.left + b.width / 2, by = b && b.top + b.height / 2;
+  const path = a && b && { left: Math.min(a.left, bx), top: Math.min(a.top, by), width: Math.max(a.right, bx) - Math.min(a.left, bx), height: Math.max(a.bottom, by) - Math.min(a.top, by) };
+  const kept = [
+    ...[c.from?.(), c.to?.(), c.ring?.()].map(el => keep(el, 100)),
+    keep(path, 50),
+    mat.querySelector('.word') && keep(mat, 20),
+    ...(JUST_FOUND.includes(coach.step) ? [...tray.querySelectorAll('.found.filled'), clue.textContent.trim() && (clue.firstElementChild ?? clue)] : []).map(el => keep(el, 60)),
+    ...[...shelf.querySelectorAll('.word')].map(el => keep(el, 2)),   // the rest of the table, where there's open space instead
+    ...[...document.querySelectorAll('.top .brand, .top .tools, .board-bar .cat, .board-bar .nav')].map(el => keep(el, 3)),
+  ].filter(Boolean);
+  // A drag step keeps the card near the move; a button step keeps it mid-screen.
+  const focus = path ? path.top + path.height / 2 : innerHeight / 2;
+  const top = Math.max(m, document.querySelector('.top').getBoundingClientRect().top);   // below an iPhone app's status bar
+  // Full width (or the card's widest), and on a phone a narrower one the width of a column of tiles.
+  const full = Math.min(innerWidth - 2 * m, 400), narrow = Math.round((innerWidth - 3 * m) / 2);
+  const sizes = [[full, 0]];
+  if (narrow >= 170 && narrow < full - 60) sizes.push([narrow, 300]);
   let best = null;
-  const tryAt = (x0, y, cost) => { if (y + h <= innerHeight - m && (!best || cost < best.cost)) best = { x0, y, cost }; };
-  // Sideways moves cost a lot, so they only win when the middle has no room.
-  for (const [x0, side] of [[middle, 0], [m, 300], [innerWidth - w - m, 300]]) {
-    const near = rects.filter(q => q.right + 10 > x0 && q.left - 10 < x0 + w);
-    if (!near.length) { tryAt(x0, Math.max(floorAt(x0), cy), side + 100); continue; }
-    const top = Math.min(...near.map(q => q.top)), bottom = Math.max(...near.map(q => q.bottom)), min = floorAt(x0);
-    for (const gap of [20, 10]) {
-      const above = top - gap - h;
-      if (above >= min) tryAt(x0, Math.max(min, Math.min(cy, above)), side + Math.abs(Math.min(cy, above) - cy) + (gap < 20 ? 60 : 0));
-      if (gap === 20 && bottom + gap + h <= innerHeight - m) tryAt(x0, bottom + gap, side + 200 + Math.abs(bottom + gap - cy));
+  for (const [w, cost0] of sizes) {
+    const h = cardHeight(w), lo = top, hi = innerHeight - m - h;
+    if (hi < lo) continue;
+    const covered = (x0, y) => kept.reduce((sum, q) => sum + q.weight * Math.max(0, Math.min(x0 + w, q.r) - Math.max(x0, q.l)) * Math.max(0, Math.min(y + h, q.b) - Math.max(y, q.t)), 0);
+    const middle = (innerWidth - w) / 2, xs = w === full ? [[middle, 0], [m, 300], [innerWidth - w - m, 300]] : [[m, 0], [innerWidth - w - m, 0]];
+    for (const [x0, side] of xs) for (const y0 of [focus - h / 2, lo, hi, ...kept.flatMap(q => [q.t - 12 - h, q.b + 12])]) {
+      const y = Math.min(hi, Math.max(lo, y0)), cost = cost0 + side + Math.abs(y + h / 2 - focus) + covered(x0, y);
+      if (!best || cost < best.cost) best = { x0, y, w, cost };
     }
   }
-  // Last resorts: squeeze in above the target over the header and title rows, else sit at the top.
-  const top = Math.min(...rects.map(q => q.top)), above = top - 10 - h;
-  if (!best) best = { x0: middle, y: Math.max(m, above), cost: 0 };
-  if (coach.cardY !== best.y || coach.cardX !== best.x0) {
-    coach.cardY = best.y; coach.cardX = best.x0;
-    card.style.top = `${Math.round(best.y)}px`; card.style.left = best.x0 === middle ? '' : `${Math.round(best.x0 + w / 2)}px`;
+  best ??= { x0: (innerWidth - full) / 2, y: top, w: full };
+  if (coach.cardY !== best.y || coach.cardX !== best.x0 || coach.cardW !== best.w) {
+    coach.cardY = best.y; coach.cardX = best.x0; coach.cardW = best.w;
+    card.style.top = `${Math.round(best.y)}px`; card.style.left = `${Math.round(best.x0 + best.w / 2)}px`;
+    card.style.width = best.w === full ? '' : `${best.w}px`;
   }
+}
+// How tall the card is at a width, measured once per step and width.
+function cardHeight(w) {
+  const key = `${coach.step} ${w} ${innerHeight}`;
+  if (coach.heights?.key !== key) {
+    const card = coach.card, was = card.style.width;
+    card.style.width = `${w}px`; coach.heights = { key, h: card.offsetHeight }; card.style.width = was;
+  }
+  return coach.heights.h;
 }
 $('practice-btn').addEventListener('click', startPractice);
 
