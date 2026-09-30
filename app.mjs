@@ -370,10 +370,11 @@ function build(save = true) {
 // (or, with the phone sideways, if the table runs past its half of the screen).
 function sizeTiles() {
   const cards = puzzle().cards, app = shelf.closest('.app'), area = $('play-area');
+  const homeApp = document.documentElement.classList.contains('home-app');   // pushed down below iOS's status-bar blur, so the buttons can end up past the room
   const tooTall = () => {
     const bar = document.querySelector('.bottom').getBoundingClientRect(), table = shelf.getBoundingClientRect();
     const hitsBar = r => r.left < bar.right && bar.left < r.right && r.bottom > bar.top - 2;   // with a little air above the buttons
-    return app.scrollHeight > app.clientHeight || (between && document.documentElement.scrollHeight > innerHeight) || table.bottom > area.getBoundingClientRect().bottom + .5 || hitsBar(table) || hitsBar(message.getBoundingClientRect());
+    return app.scrollHeight > app.clientHeight || (between && document.documentElement.scrollHeight > innerHeight) || table.bottom > area.getBoundingClientRect().bottom + .5 || (homeApp && bar.bottom > area.getBoundingClientRect().bottom + .5) || hitsBar(table) || hitsBar(message.getBoundingClientRect());
   };
   const [left, right] = [0, 1].map(c => Math.max(...cards.filter(card => card.column === c).map(card => card.word.length)));
   const longest = Math.max(left, right);
