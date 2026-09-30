@@ -28,9 +28,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=2ab1ubq0">
-<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=1d3ln2am","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei"}}</script>
-<script type="module" src="app.mjs?v=1tsuf5j1"></script>
+<link rel="stylesheet" href="style.css?v=1qrkaekb">
+<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=1cybmdqu","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei"}}</script>
+<script type="module" src="app.mjs?v=1klskilq"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater!" width="2000" height="1050"></div>
@@ -49,6 +49,7 @@
       <button id="theme" class="icon-btn" type="button" aria-label="Settings" aria-haspopup="dialog"></button>
     </div>
   </header>
+  <noscript><p class="no-js">Spoondle needs JavaScript to run. Turn it on in your browser, then reload the page.</p></noscript>
   <div class="board-bar">
     <div class="cat"><strong id="category">Words &amp; phrases</strong><span class="chip" id="level" hidden></span></div>
     <nav class="nav" aria-label="Choose a puzzle"><button id="prev" type="button" aria-label="Previous puzzle">←</button><span id="count">1 / 9</span><button id="next" type="button" aria-label="Next puzzle">→</button></nav>

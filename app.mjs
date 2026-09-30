@@ -21,7 +21,8 @@ try { saved = readProgress(localStorage); } catch {}
 const keys = puzzles.map(puzzleKey);
 let records = puzzles.map((p, i) => restoreRecord(p, saved.records[keys[i]]));
 // Today's puzzle is the newest one out; later ones stay hidden until their day.
-const latest = Math.max(0, Math.min(puzzles.length - 1, daysBetween(LAUNCH, today())));
+const latestNow = () => Math.max(0, Math.min(puzzles.length - 1, daysBetween(LAUNCH, today())));
+let latest = latestNow();
 // Open on today's puzzle, or on an earlier one named in the link (?p=).
 const requested = keys.indexOf(new URL(location.href).searchParams.get('p'));
 let board = requested >= 0 && requested <= latest ? requested : latest;
@@ -81,8 +82,10 @@ buildRotate();
 const sideways = matchMedia('(orientation: landscape) and (max-height: 500px) and (pointer: coarse)');
 sideways.addEventListener('change', () => { document.querySelector('.app').inert = sideways.matches; if (!sideways.matches) buildRotate(); refreshClocks(); });
 document.querySelector('.app').inert = sideways.matches;
+const PAUSING = ['help-dialog', 'theme-dialog', 'archive-dialog', 'stats-dialog'];
 function syncClocks() {
-  const showing = !document.hidden && !$('help-dialog').open && !sideways.matches;
+  // The clock waits while How to play, Settings, Archive or Statistics covers the puzzle.
+  const showing = !document.hidden && !PAUSING.some(id => $(id).open) && !sideways.matches;
   if (practice) { records.forEach(r => pauseRecord(r)); if (showing) resumeRecord(practice.record); else pauseRecord(practice.record); return; }
   records.forEach((r, i) => {
     if (i !== board || !showing || r.startedAt === null) { pauseRecord(r); return; }
@@ -253,7 +256,9 @@ function build(save = true) {
   $('category').textContent = p.category; $('level').hidden = !p.difficulty; $('level').textContent = p.difficulty ?? ''; $('level').dataset.level = (p.difficulty ?? '').toLowerCase();
   $('count').textContent = practice ? 'Practice' : `${monthDay(dayOf(board))}${record().finishedAt !== null && !s.revealed ? ' ✓' : ''}`;
   $('prev').disabled = !!practice || board === 0; $('next').disabled = !!practice || board >= latest;
-  if (!practice) { const url = new URL(location.href); url.searchParams.set('p', keys[board]); history.replaceState(null, '', url); }
+  // Only an earlier puzzle goes in the link. Today's stays plain, so a reload, a restored tab or a home-screen
+  // shortcut opens whatever is today's puzzle by then rather than the day it was first opened.
+  if (!practice) { const url = new URL(location.href); if (board === latest) url.searchParams.delete('p'); else url.searchParams.set('p', keys[board]); history.replaceState(null, '', url); }
   shelf.replaceChildren(); tray.replaceChildren(); clue.replaceChildren(); mat.replaceChildren(); mat.className = 'mat'; mat.style.minHeight = '';
   delete shelf.dataset.dim;   // a new board starts with nothing on the mat, so no column is faded
   const columns = [0, 1].map(c => p.cards.filter(card => card.column === c));
@@ -317,6 +322,20 @@ function goTo(index) {
   // The new board slides in from the side you moved toward, like turning to the next page.
   if (!RM && direction) $('play-area').animate([{ transform: `translateX(${direction * 56}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
 }
+// When midnight passes with the page open, today's puzzle changes. A player who is between puzzles (finished, or
+// not yet started) moves to the new one; someone mid-puzzle keeps theirs, and the next arrow now reaches it.
+// Nothing is moved while a dialog, a drag or the tutorial is up; the next check (or the dialog closing) tries again.
+function checkNewDay() {
+  const fresh = latestNow();
+  if (fresh === latest) return;
+  const between = board === latest && (records[board].startedAt === null || records[board].finishedAt !== null);
+  if (between && (practice || busy || drag || document.querySelector('dialog[open]'))) return;
+  latest = fresh;
+  if (between) goTo(fresh); else $('next').disabled = !!practice || board >= latest;
+}
+setInterval(checkNewDay, 5000);
+for (const d of document.querySelectorAll('dialog')) d.addEventListener('close', checkNewDay);
+for (const id of PAUSING.slice(1)) $(id).addEventListener('close', refreshClocks);
 function nextUnfinished() {
   for (let step = 1; step <= latest; step++) { const i = (board + step) % (latest + 1); if (records[i].finishedAt === null) return i; }
   return -1;
@@ -358,12 +377,13 @@ function say(parts = null) {
     const next = nextUnfinished();
     // A daily game: once today's puzzle is done, share it, see how you're doing, or go back to an earlier day.
     const done = note(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`);
-    const wait = document.createElement('span'); wait.className = 'countdown'; done.append(' ', wait); showCountdown(wait);
+    const wait = document.createElement('span'); wait.className = 'countdown'; done.append(' ', wait);
     const share = pill('Share', shareResult, true);
     const stats = pill('Stats', openStats); stats.classList.add('soft'); stats.insertAdjacentHTML('afterbegin', CHART);
     const archive = pill('Archive', openArchive); archive.classList.add('soft'); archive.insertAdjacentHTML('afterbegin', CALENDAR);
     const row = document.createElement('span'); row.className = 'done-actions'; row.append(share, stats, archive);
     message.append(done, row);
+    showCountdown(wait);   // once it's on the page, so the first count shows at once
     return;
   }
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
@@ -744,7 +764,7 @@ function buildPicker() {
     return b;
   }));
 }
-$('theme').addEventListener('click', () => $('theme-dialog').showModal());
+$('theme').addEventListener('click', () => { $('theme-dialog').showModal(); refreshClocks(); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   let chosen = null; try { chosen = localStorage.getItem('spoondle-theme'); } catch {}
   if (!chosen) applyTheme(systemTheme());
@@ -865,7 +885,7 @@ function playOf(i) {
 let shownMonth = null;
 function openArchive() {
   const d = new Date(`${dayOf(board)}T12:00:00`); shownMonth = [d.getFullYear(), d.getMonth()];
-  drawArchive(); $('archive-dialog').showModal();
+  drawArchive(); $('archive-dialog').showModal(); refreshClocks();
 }
 function drawArchive() {
   const [y, m] = shownMonth, now = today(), cal = $('calendar');
@@ -956,7 +976,7 @@ function drawStats() {
     <section><h3 class="section-label">By category</h3>
       <div class="cat-head"><span></span><span></span><span>Solved</span><span>Typical</span></div>${catRows}</section>`;
 }
-function openStats() { drawStats(); $('stats-dialog').showModal(); }
+function openStats() { drawStats(); $('stats-dialog').showModal(); refreshClocks(); }
 $('stats').addEventListener('click', openStats);
 // The wait until tomorrow's puzzle, counting down while it's on screen.
 let countdownTimer = 0;
@@ -965,7 +985,7 @@ function showCountdown(el) {
   const tick = () => {
     if (!el.isConnected) return clearInterval(countdownTimer);
     const now = new Date(), midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
-    el.textContent = `Next puzzle in ${formatTime(midnight - now)}.`;
+    el.textContent = `Next puzzle in ${formatTime(midnight - now)}.`; checkNewDay();
   };
   tick(); countdownTimer = setInterval(tick, 1000);
 }
@@ -975,9 +995,9 @@ for (const d of document.querySelectorAll('dialog')) d.addEventListener('click',
   const r = d.getBoundingClientRect();
   if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
 });
-document.addEventListener('visibilitychange', refreshClocks);
+document.addEventListener('visibilitychange', () => { checkNewDay(); refreshClocks(); });
 window.addEventListener('pagehide', () => { pauseRecord(record()); persist(); });
-window.addEventListener('pageshow', e => { if (e.persisted) refreshClocks(); });
+window.addEventListener('pageshow', e => { checkNewDay(); if (e.persisted) refreshClocks(); });
 // Another tab saved progress: take it, without saving back, so two open tabs don't echo each other.
 window.addEventListener('storage', e => {
   if (e.key !== STORAGE_KEY || !e.newValue || busy || drag) return;
