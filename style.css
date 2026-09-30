@@ -239,9 +239,9 @@ dialog[open]{animation:dialog-in .2s ease-out}
 dialog h2{margin:0;font:700 24px/1.2 Georgia,"Times New Roman",serif;letter-spacing:-.02em}
 dialog p{margin:10px 0;line-height:1.5}
 .close-button{width:40px;height:40px;padding:0;border:0;border-radius:50%;background:transparent;font-size:26px;cursor:pointer}
-.rules{margin:10px 0;padding-left:0;list-style:none;line-height:1.5;font-size:min(15px,3.6vw)}
+.rules{margin:6px 0 2px;padding-left:0;list-style:none;line-height:1.5;font-size:min(15px,3.6vw)}
 .rules li{margin:3px 0}
-.examples{position:relative;margin:10px 0}
+.examples{position:relative;margin:4px 0 6px}
 /* The written examples stay for screen readers; everyone else watches them play out on a little mat in the table's own tiles. */
 .example{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .demo{height:94px;display:grid;place-content:center;justify-items:center;gap:8px;padding:8px 12px;border-radius:14px;background:var(--mat-art);border:1px solid var(--mat-edge);box-shadow:0 1px 2px rgba(0,0,0,.14),inset 0 1px 6px rgba(0,0,0,.2)}
@@ -250,9 +250,9 @@ dialog p{margin:10px 0;line-height:1.5}
 .demo-note span{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .example-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .example-track::-webkit-scrollbar{display:none}
-.example-card{position:relative;flex:0 0 100%;margin:0;scroll-snap-align:center;display:grid;gap:6px}
-.example-card figcaption{min-height:28px;display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.example-arrow{position:absolute;bottom:0;width:44px;height:28px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+.example-card{position:relative;flex:0 0 100%;margin:0;scroll-snap-align:center;display:grid;gap:2px}
+.example-card figcaption{min-height:22px;display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.example-arrow{position:absolute;bottom:-3px;width:44px;height:28px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
 #example-prev{left:0}
 #example-next{right:0}
 .example-arrow:disabled{opacity:.25;cursor:default}
@@ -275,10 +275,10 @@ dialog p{margin:10px 0;line-height:1.5}
 /* Links in the fine print stay quiet: the text's own color, with a soft underline. */
 .fine a{color:inherit;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);text-underline-offset:.18em}
 .fine.privacy{margin:14px 0 0;line-height:1.45}
-#help-dialog .fine{line-height:1.4;margin:14px 0 0;text-align:center}
+#help-dialog .fine{line-height:1.4;margin:10px 0 0;text-align:center}
 /* How to play may run a little taller than other sheets, so the buttons get room to breathe below the fine print. */
-#help-dialog{max-height:94dvh}
-#help-dialog .help-actions{margin-top:18px}
+#help-dialog{max-height:96dvh;padding-bottom:18px}
+#help-dialog .help-actions{margin-top:14px}
 .fine.privacy strong{color:var(--ink);font-weight:600}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
 #share-text{width:100%;margin:12px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--table);color:var(--ink);font:inherit;line-height:1.5;resize:vertical}
@@ -458,8 +458,16 @@ dialog p{margin:10px 0;line-height:1.5}
 .splash.leaving{opacity:0;pointer-events:none}
 /* "sticky" and "swappy" in How to play wear the gray and amber a clue paints on tiles, and act the part now and then. */
 /* Hint and Reveal appear in How to play as small copies of the real buttons. */
-.controls{line-height:1.7}
-.controls>span+span{margin-top:10px}
+.controls{line-height:1.5}
+.controls>span+span{margin-top:8px}
+/* Each line is a row: a button (or icon) in a fixed column, its words beside it. The words hang, so a second line
+   starts under the first, not back under the button. The two icon rows center their words on the icon. */
+.lines.controls>.hang,.lines.controls>.mode-demo,.lines.controls>.settings-note{display:flex}
+.hang{align-items:baseline;gap:.5em}
+.hang>.as-label{flex:none;min-width:calc(4em + 22px);text-align:center}
+.hang>.what{text-wrap:pretty}
+.lines.controls>.mode-demo,.lines.controls>.settings-note{align-items:center}
+.lines.controls>.mode-demo .mode-text,.lines.controls>.settings-note>span:last-child{position:relative;top:-.5px}   /* the words' middle sits with the icon's, as the pills' words do */
 .as-label{display:inline-block;padding:3px 10px;font-size:.9em;line-height:1.2;vertical-align:1px;pointer-events:none;cursor:default}
 /* Card table's buttons draw a double ring inside the edge; on the smaller How to play label it's drawn finer, with a little more room. */
 [data-theme=felt] .icon-btn.as-icon{box-shadow:inset 0 0 0 1.5px #f2ead0,inset 0 0 0 2.5px rgba(28,90,64,.55),0 1px 2px rgba(0,0,0,.35)}
