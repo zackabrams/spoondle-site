@@ -329,6 +329,7 @@ function fillFound(box, label, revealed) {
   return answer;
 }
 function build(save = true) {
+  clearA2hs();
   const p = puzzle(), s = state(), solvedIds = new Set(s.solved.flat());
   busy = false; picked = null; lastSwap = null; lastWrong = null; homeOf.clear();
   syncClocks();
@@ -457,6 +458,7 @@ function note(text, spoken = '') {
   return n;
 }
 function say(parts = null) {
+  clearA2hs();
   queueMicrotask(coachUpdate);
   const done = record().finishedAt !== null;
   for (const el of [shelf, mat]) { el.classList.toggle('finished', done); el.classList.toggle('given-up', done && state().revealed > 0); }
@@ -1162,6 +1164,8 @@ setInterval(updateStats, 250);
 const A2HS_KEY = 'spoondle-a2hs';   // set once the card is dismissed or followed
 const A2HS_SHOWN = 'spoondle-a2hs-shown';   // how many solves have shown it
 let justSolved = -1, nudgedFor = -1;   // the board solved in this visit, and the one the card was already counted for
+let a2hsWrap = null;   // the card and its link, laid over the empty table once a puzzle is solved
+const clearA2hs = () => { a2hsWrap?.remove(); a2hsWrap = null; $('play-area').classList.remove('has-a2hs'); };
 const SHARE = icon('<path d="M12 15V3.5M8 7l4-4 4 4M6.5 10H6a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18 10h-.5"/>');
 const ADD = icon('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>');
 const homeKind = () => homeScreenKind({ userAgent: navigator.userAgent, platform: navigator.platform, maxTouchPoints: navigator.maxTouchPoints, standalone: navigator.standalone === true || matchMedia('(display-mode: standalone)').matches });
@@ -1185,7 +1189,7 @@ const carrying = on => {
 const a2hsDone = () => { try { localStorage.setItem(A2HS_KEY, 'no'); } catch {} };
 function addToHomeNudge() {
   const kind = homeKind(); let dismissed = null; try { dismissed = localStorage.getItem(A2HS_KEY); } catch {}
-  if (!kind || dismissed || practice || justSolved !== board || record().state.revealed > 0) return;
+  if (!kind || dismissed || practice || justSolved !== board || record().state.revealed > 0 || sideBySide.matches) return;   // the wide layout has the mat where the card would sit
   if (nudgedFor !== board) {
     let shown = 0; try { shown = Number(localStorage.getItem(A2HS_SHOWN)) || 0; } catch {}
     if (shown >= 3) return;
@@ -1197,10 +1201,23 @@ function addToHomeNudge() {
   const go = pill('Show me', () => openHomeGuide('nudge'));
   go.classList.add('soft'); card.insertBefore(go, null);
   const no = document.createElement('button'); no.type = 'button'; no.className = 'a2hs-no'; no.textContent = 'Don’t show this again';
-  no.addEventListener('click', () => { a2hsDone(); track('open', { n: 'a2hs_no' }); card.remove(); no.remove(); });
-  message.append(card, no);
-  // Only where there's room: on a short screen the card would push the page past the bottom, so it steps aside.
-  requestAnimationFrame(() => { if (document.documentElement.scrollHeight > innerHeight + 1) { card.remove(); no.remove(); } });
+  no.addEventListener('click', () => {
+    a2hsDone(); track('open', { n: 'a2hs_no' }); card.remove(); no.remove();
+    // Say where the instructions went, so dismissing it isn't a dead end.
+    const after = document.createElement('span'); after.className = 'note a2hs-after';
+    after.innerHTML = `No problem. You can find instructions in Settings ${GEAR} anytime.`;
+    a2hsWrap.append(after);
+  });
+  // The card sits over the empty table where the tiles were: the page has no spare room under the buttons on most phones, and it
+  // would only land under the table, out of reach. Where even that is too small, or a button couldn't be tapped, it steps aside.
+  const wrap = document.createElement('div'); wrap.className = 'a2hs-wrap'; wrap.append(card, no);
+  $('play-area').append(wrap); $('play-area').classList.add('has-a2hs'); a2hsWrap = wrap;   // the big checkmark steps aside while it's up
+  const place = () => { wrap.style.top = `${shelf.offsetTop + 6}px`; };
+  const tappable = el => { const r = el.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!top && el.contains(top); };
+  place();
+  const ok = () => wrap.getBoundingClientRect().bottom <= innerHeight - 6 && tappable(go) && tappable(no);
+  if (!ok()) { clearA2hs(); return; }
+  requestAnimationFrame(() => { if (a2hsWrap !== wrap) return; place(); if (!ok()) clearA2hs(); });
 }
 function showHomeRow() {
   const kind = homeKind(); $('a2hs-setting').hidden = !kind;

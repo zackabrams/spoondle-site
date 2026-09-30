@@ -138,7 +138,7 @@ button{font:inherit;color:inherit}
    Translucent, and padded just enough that wrapped lines meet without overlapping into a darker seam. */
 .message .note{line-height:1.55}
 .pill.soft{background:color-mix(in srgb,var(--panel) 50%,transparent);color:var(--ink)}
-.clue>span,.message .note{padding:.2em .55em;border-radius:6px;background:color-mix(in srgb,var(--panel) 50%,transparent);color:color-mix(in srgb,var(--muted) 55%,var(--ink));-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.clue>span,.message .note,.a2hs-after{padding:.2em .55em;border-radius:6px;background:color-mix(in srgb,var(--panel) 50%,transparent);color:color-mix(in srgb,var(--muted) 55%,var(--ink));-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .clue b{color:var(--ink);font-weight:700;letter-spacing:.03em;margin-right:.4em}
 
 .shelf{position:relative;display:grid;grid-template-columns:auto auto auto;justify-content:space-evenly;gap:16px 12px;padding-block:4px}
@@ -641,7 +641,7 @@ dialog.sheet{max-width:440px}
   .found{border:1.5px dashed var(--line)}
   .use{border-color:var(--line);background:transparent}
   .pill.soft,.pill.soft.as-label{background:var(--panel)}
-  .clue>span,.message .note{background:var(--panel);color:var(--ink)}
+  .clue>span,.message .note,.a2hs-after{background:var(--panel);color:var(--ink)}
   .bed{background:rgba(0,0,0,.14)}
   .home.empty{outline:1.5px dashed var(--line)}
   .ex+.ex{border-left:1px solid var(--line)}
@@ -652,12 +652,12 @@ dialog.sheet{max-width:440px}
 }
 
 /* Add to Home Screen: a card under the solved line (after a first solve), and its steps. */
-.a2hs{flex:0 0 100%;box-sizing:border-box;margin-top:14px;padding:12px 12px 12px 14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;text-align:left;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);color:var(--ink);box-shadow:0 8px 22px -12px var(--shadow)}
+.a2hs{flex:none;width:100%;box-sizing:border-box;margin:0;padding:12px 12px 12px 14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;text-align:left;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--panel) 94%,transparent);color:var(--ink);box-shadow:0 8px 22px -12px var(--shadow)}
 .a2hs-icon{width:44px;height:44px;border-radius:11px;box-shadow:0 1px 3px rgba(0,0,0,.3);display:block}
 .a2hs-text{display:grid;gap:1px;font-size:14px;line-height:1.3;color:var(--muted)}
 .a2hs-text strong{color:var(--ink);font-size:15px}
 .a2hs .pill{white-space:nowrap}
-.a2hs-no{flex:0 0 100%;margin:0 auto;border:0;background:transparent;color:var(--muted);font-size:13px;padding:6px 10px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);cursor:pointer}
+.a2hs-no{flex:none;margin:0 auto;border:0;background:transparent;color:var(--muted);font-size:13px;padding:6px 10px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);cursor:pointer}
 
 /* The Add to Home Screen guide: big numbered steps, each with a little picture of what to look for. */
 .a2hs-lead{margin:6px 0 0;font-size:16px;line-height:1.4}
@@ -680,3 +680,7 @@ dialog.sheet{max-width:440px}
 .art-bar{justify-content:space-between;gap:12px;border-radius:999px;padding:9px 18px}
 .art-bar span{flex:1;text-align:center}
 #a2hs-dialog{max-height:96dvh}
+.a2hs-after{flex:none;max-width:300px;text-wrap:balance;font-size:14px;line-height:1.5;text-align:center}
+.a2hs-after svg{width:16px;height:16px;vertical-align:-3px;margin:0 1px}
+.a2hs-wrap{position:absolute;left:0;right:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:440px;margin-inline:auto}
+.has-a2hs .shelf.finished::after{opacity:0}
