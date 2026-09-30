@@ -18,7 +18,7 @@ export function parseEvent(body, now = Date.now()) {
     ts: now, visit, event,
     puzzle: int(d.p, 100000), ms: int(d.ms, 86400000), hints: int(d.h, 1000), peeks: int(d.k, 1000), secs: int(d.s, 86400),
     started: d.a === 1 ? 1 : d.a === 0 ? 0 : null, solved: d.o === 1 ? 1 : d.o === 0 ? 0 : null, repeat_visit: d.r === 1 ? 1 : d.r === 0 ? 0 : null,
-    ref: text(d.f, /^[0-9a-z.-]*$/i, 60) || null, device: DEVICES.has(d.d) ? d.d : null, note: text(d.n, /^[A-Za-z_]{1,24}$/, 24),
+    ref: text(d.f, /^[0-9a-z.-]*$/i, 60) || null, device: DEVICES.has(d.d) ? d.d : null, note: text(d.n, /^[A-Za-z0-9_]{1,24}$/, 24),
   };
 }
 

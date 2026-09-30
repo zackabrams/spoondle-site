@@ -644,3 +644,15 @@ dialog.sheet{max-width:440px}
   .heat i,.heat-legend i,.cat-row .track{background:var(--line)}
   .heat i.started{background:linear-gradient(to top,var(--tile-mid) 50%,var(--line) 50%)}
 }
+
+/* Add to Home Screen: a card under the solved line (after a first solve), and its steps. */
+.a2hs{flex:0 0 100%;box-sizing:border-box;margin-top:14px;padding:12px 12px 12px 14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;text-align:left;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);color:var(--ink);box-shadow:0 8px 22px -12px var(--shadow)}
+.a2hs-icon{width:44px;height:44px;border-radius:11px;box-shadow:0 1px 3px rgba(0,0,0,.3);display:block}
+.a2hs-text{display:grid;gap:1px;font-size:14px;line-height:1.3;color:var(--muted)}
+.a2hs-text strong{color:var(--ink);font-size:15px}
+.a2hs .pill{white-space:nowrap}
+.a2hs-steps{grid-column:1/-1;margin:8px 0 0;padding:10px 0 0;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);list-style:none;display:grid;gap:8px;font-size:14px;line-height:1.35;color:var(--ink)}
+.a2hs-steps li{display:flex;align-items:center;gap:10px}
+.a2hs-steps .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 12px/1 system-ui}
+.a2hs-steps svg{width:18px;height:18px;vertical-align:-4px;margin:0 2px}
+.a2hs-no{flex:0 0 100%;margin:0 auto;border:0;background:transparent;color:var(--muted);font-size:13px;padding:6px 10px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);cursor:pointer}

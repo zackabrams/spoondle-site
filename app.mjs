@@ -4,6 +4,7 @@ import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint
 import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
 import { access } from './access.mjs';
 import { browserTracker } from './track.mjs';
+import { homeScreenKind, STEPS, SUMMARY, carryPayload } from './home.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
 import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
 
@@ -478,6 +479,7 @@ function say(parts = null) {
     const row = document.createElement('span'); row.className = 'done-actions'; row.append(share, stats, archive);
     message.append(done, row);
     showCountdown(wait);   // once it's on the page, so the first count shows at once
+    addToHomeNudge();
     return;
   }
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
@@ -1149,6 +1151,51 @@ window.addEventListener('storage', e => {
 });
 setInterval(updateStats, 250);
 
+
+// ---------- Add to Home Screen ----------
+// A card after a player's first solved puzzle, and a row in Settings, on phones that can add a Home Screen icon and haven't.
+const A2HS_KEY = 'spoondle-a2hs';   // set once the card is dismissed or followed
+const SHARE = icon('<path d="M12 15V3.5M8 7l4-4 4 4M6.5 10H6a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18 10h-.5"/>');
+const ADD = icon('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>');
+const homeKind = () => homeScreenKind({ userAgent: navigator.userAgent, platform: navigator.platform, maxTouchPoints: navigator.maxTouchPoints, standalone: navigator.standalone === true || matchMedia('(display-mode: standalone)').matches });
+const stepsHtml = kind => `<ol class="a2hs-steps">${STEPS[kind].map((s, i) => `<li><span class="n">${i + 1}</span><span>${s.replace('{share}', SHARE).replace('{add}', ADD)}</span></li>`).join('')}</ol>`;
+// On an iPhone the icon opens with empty storage, so while the steps are showing the page's link carries the saved puzzles along
+// (index.html reads them when the icon opens). It comes off again when the steps close.
+const carrying = on => {
+  if (homeKind() !== 'ios') return;
+  try { history.replaceState(null, '', location.pathname + location.search + (on ? '#carry=' + encodeURIComponent(carryPayload(localStorage, STORAGE_KEY)) : '')); } catch {}
+};
+const a2hsDone = () => { try { localStorage.setItem(A2HS_KEY, 'no'); } catch {} };
+function addToHomeNudge() {
+  const kind = homeKind(); let dismissed = null; try { dismissed = localStorage.getItem(A2HS_KEY); } catch {}
+  const solvedOnce = records.filter(r => r.finishedAt !== null && r.state.revealed === 0).length === 1;
+  if (!kind || dismissed || practice || !solvedOnce || record().state.revealed > 0) return;
+  const card = document.createElement('div'); card.className = 'a2hs';
+  card.innerHTML = `<img class="a2hs-icon" src="apple-touch-icon.png" alt=""><span class="a2hs-text"><strong>Play every day?</strong><span>Add Spoondle to your Home Screen.</span></span>`;
+  const go = pill('Show me', () => {
+    const open = !card.querySelector('.a2hs-steps');
+    if (open) { card.insertAdjacentHTML('beforeend', stepsHtml(kind)); go.textContent = 'Got it'; carrying(true); track('open', { n: 'a2hs_nudge' }); }
+    else { card.querySelector('.a2hs-steps').remove(); carrying(false); a2hsDone(); card.remove(); no.remove(); }
+  });
+  go.classList.add('soft'); card.insertBefore(go, null);
+  const no = document.createElement('button'); no.type = 'button'; no.className = 'a2hs-no'; no.textContent = 'Don’t show this again';
+  no.addEventListener('click', () => { carrying(false); a2hsDone(); track('open', { n: 'a2hs_no' }); card.remove(); no.remove(); });
+  message.append(card, no);
+  // Only where there's room: on a short screen the card would push the page past the bottom, so it steps aside.
+  requestAnimationFrame(() => { if (document.documentElement.scrollHeight > innerHeight + 1) { card.remove(); no.remove(); } });
+}
+function showHomeRow() {
+  const kind = homeKind(); $('a2hs-setting').hidden = !kind;
+  if (kind) $('a2hs-btn').innerHTML = ADD;
+}
+$('a2hs-btn').addEventListener('click', () => {
+  const kind = homeKind(), note = $('a2hs-note'), open = $('a2hs-btn').getAttribute('aria-expanded') !== 'true';
+  $('a2hs-btn').setAttribute('aria-expanded', String(open));
+  note.textContent = open ? SUMMARY[kind] : 'Open Spoondle like an app.';
+  carrying(open); if (open) track('open', { n: 'a2hs_row' });
+});
+$('theme-dialog').addEventListener('close', () => { $('a2hs-btn').setAttribute('aria-expanded', 'false'); $('a2hs-note').textContent = 'Open Spoondle like an app.'; carrying(false); });
+
 // ---------- the practice puzzle: a guided first game ----------
 // A short board played for real, with a coach card, a spotlight on what to touch next, and a finger that
 // shows each drag. It never touches saved progress, stats or streaks, and Skip leaves at any point.
@@ -1360,9 +1407,9 @@ function welcome() {
     setTimeout(() => { if (!splash.classList.contains('shown')) leave(); }, 2500);   // never wait long on a slow connection
   });
 }
-buildPicker(); applyTheme(theme()); showSound(); showRelax(); showMat(); build();
+buildPicker(); applyTheme(theme()); showSound(); showRelax(); showMat(); showHomeRow(); build();
 // A first visit starts with the practice puzzle (How to play is always a tap away); ?practice replays it.
 let practiceSeen = true; try { practiceSeen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
-track('visit', { p: board + 1, r: records.some(r => r.startedAt !== null) ? 1 : 0 });
+track('visit', { p: board + 1, r: records.some(r => r.startedAt !== null) ? 1 : 0, ...(navigator.standalone === true || matchMedia('(display-mode: standalone)').matches ? { n: 'app' } : {}) });
 if (!helpSeen && !practiceSeen) welcome().then(startPractice);
 else { welcome(); if (new URLSearchParams(location.search).has('practice')) startPractice(); }   // welcome() only clears the title card if it's up
