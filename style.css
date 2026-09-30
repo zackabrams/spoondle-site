@@ -339,7 +339,11 @@ dialog p{margin:10px 0;line-height:1.5}
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
   .app{height:100dvh;min-height:0;overflow:hidden;gap:clamp(6px,1dvh,10px);padding-inline:12px;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom));touch-action:none;touch-action:pinch-zoom}
   .play-area{gap:clamp(6px,1dvh,10px);min-height:0}
-  .shelf{row-gap:clamp(4px,1dvh,8px);padding-block:0}
+  .shelf{row-gap:clamp(8px,1.3dvh,12px);column-gap:8px;padding-block:0;margin-top:clamp(3px,1dvh,7px)}   /* room for a dashed empty spot beside its neighbours, and for the tray clear of the definition line */
+  .bed{margin-inline:-7px}
+  .home.empty{outline-offset:2px}
+  .clue{margin-top:clamp(0px,.3dvh,2px)}
+  .bottom{padding-top:clamp(0px,.5dvh,4px)}
   .mat{gap:8px;padding:13px 12px calc(13px + var(--mat-s,50px) * .07);border-radius:16px}
   .slot{min-height:calc(var(--mat-s,50px) + 8px)}
   .found{height:36px}
@@ -351,14 +355,32 @@ dialog p{margin:10px 0;line-height:1.5}
 }
 @media (max-width:600px) and (max-height:650px){
   .mat{margin-top:clamp(6px,2dvh,14px)}
-  .app{gap:5px;padding-block:max(5px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-bottom))}
+  .app{gap:5px;padding-block:max(5px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
   .play-area{gap:5px}
-  .shelf{row-gap:4px}
+  .shelf{row-gap:8px}
   .mat{gap:5px;padding:9px 10px calc(9px + var(--mat-s,50px) * .07)}
   .mat .word{--s:min(var(--mat-s,50px),42px)}
   .clue{min-height:1.3em}
   .use{padding-block:0;font-size:11px}
   .slot{min-height:50px}
+}
+@media (max-width:600px) and (max-height:730px){   /* phones with the browser's bars showing: the mat gives back some height so the table's tiles stay readable */
+  .mat .word{--s:min(var(--mat-s,50px),44px)}
+  .slot{min-height:50px}
+  .found{height:34px}
+  .mat{gap:6px;padding:11px 12px calc(11px + var(--mat-s,50px) * .07)}
+}
+@media (max-width:600px) and (max-height:700px){
+  .mat .word{--s:min(var(--mat-s,50px),38px)}
+  .slot{min-height:44px}
+  .found{height:32px}
+  .mat{gap:5px;padding:9px 10px calc(9px + var(--mat-s,50px) * .07)}
+}
+@media (max-width:600px) and (max-height:600px){
+  .mat .word{--s:min(var(--mat-s,50px),34px)}
+  .slot{min-height:40px}
+  .found{height:30px}
+  .mat{gap:4px;padding:8px 10px calc(8px + var(--mat-s,50px) * .07)}
 }
 /* A phone turned sideways: still one screen, with the table on the left and the mat on the right.
    The timer and buttons sit under the mat, so the table gets the whole height of its side. */
@@ -569,7 +591,6 @@ dialog.sheet{max-width:440px}
   .rotate{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,5dvh,24px);padding:12px 24px;background:var(--table-art),var(--table);color:var(--ink);--rs:min(46px,calc((100vw - 120px)/13.6),calc(100dvh/8.5))}
   [data-theme=felt] .rotate{box-shadow:inset 0 0 0 8px #5b361a,inset 0 0 0 9.5px #3b2210,inset 0 0 0 10.5px rgba(255,210,150,.18),inset 0 18px 26px rgba(0,0,0,.35)}
   .rotate .mat{margin:0;gap:calc(var(--rs)*.3);justify-items:center}
-  .rotate .word{--s:var(--rs);--gap:calc(var(--rs)*.12);pointer-events:none}
-  .rotate .tile{cursor:default}
+  .rotate .word{--s:var(--rs);--gap:calc(var(--rs)*.12)}
   .rotate p{margin:0;font:600 clamp(18px,6dvh,24px)/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;text-wrap:balance}
 }

@@ -35,12 +35,51 @@ function persist() {
 
 // ---------- start each puzzle deliberately; pause its clock when it is not visible ----------
 // The rotate card's message, spelled out in tiles on a mat: a left-column word over a right-column word, like a real pair.
-{
+// The tiles can be picked up like any other: drop one on another and they trade places, or let go anywhere else and it settles back.
+function buildRotate() {
   const row = (words, col) => { const w = document.createElement('div'); w.className = 'word'; words.forEach((word, i) => { if (i) w.append(makeGap()); [...word].forEach((ch, j) => { const t = makeTile(ch); t.dataset.col = col; t.style.setProperty('--r', `${((j * 7 + i * 3 + col * 5) % 5 - 2) * .9}deg`); w.append(t); }); }); return w; };
-  $('rotate-mat').append(row(['TURN', 'YOUR'], 0), row(['PHONE', 'UPRIGHT'], 1));
+  $('rotate-mat').replaceChildren(row(['TURN', 'YOUR'], 0), row(['PHONE', 'UPRIGHT'], 1));
+}
+buildRotate();
+{
+  const area = $('rotate-mat');
+  let grab = null;
+  const under = (x, y, except) => document.elementsFromPoint(x, y).find(el => el !== except && el.classList.contains('tile') && area.contains(el));
+  const settle = (el, from) => el.animate([{ transform: from }, { transform: 'none' }], { duration: SNAP, easing: SPRING }).finished.then(() => el.classList.remove('lifted')).catch(() => {});
+  area.addEventListener('pointerdown', e => {
+    const tile = e.target.closest('.tile');
+    if (!tile || grab || e.button > 0) return;
+    e.preventDefault(); tile.setPointerCapture(e.pointerId);
+    grab = { tile, id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, over: null };
+    tile.getAnimations().forEach(a => a.cancel()); tile.classList.add('lifted'); tile.style.transform = 'scale(1.12)'; clack('pick');
+  });
+  area.addEventListener('pointermove', e => {
+    if (!grab || e.pointerId !== grab.id) return;
+    grab.dx = e.clientX - grab.x0; grab.dy = e.clientY - grab.y0;
+    grab.tile.style.transform = `translate(${grab.dx}px,${grab.dy}px) scale(1.12) rotate(${Math.max(-6, Math.min(6, grab.dx / 12))}deg)`;
+    const over = under(e.clientX, e.clientY, grab.tile) ?? null;
+    if (over !== grab.over) { grab.over?.classList.remove('previewed'); over?.classList.add('previewed'); grab.over = over; }
+  });
+  const drop = e => {
+    if (!grab || e.pointerId !== grab.id) return;
+    const { tile, over, dx, dy } = grab; grab = null;
+    over?.classList.remove('previewed');
+    const from = `translate(${dx}px,${dy}px) scale(1.12)`, was = tile.getBoundingClientRect();
+    tile.style.transform = '';
+    if (over) {
+      const overWas = over.getBoundingClientRect();
+      domSwap(tile, over);
+      const now = tile.getBoundingClientRect(), there = over.getBoundingClientRect();
+      // Each tile glides from where it was seen to its new spot; the one in hand starts from under the finger.
+      settle(tile, `translate(${was.left - now.left}px,${was.top - now.top}px) scale(1.12)`);
+      over.animate([{ transform: `translate(${overWas.left - there.left}px,${overWas.top - there.top}px)` }, { transform: 'none' }], { duration: SNAP, easing: SPRING });
+    } else settle(tile, from);
+    clack('place', .5);
+  };
+  area.addEventListener('pointerup', drop); area.addEventListener('pointercancel', drop);
 }
 const sideways = matchMedia('(orientation: landscape) and (max-height: 500px) and (pointer: coarse)');
-sideways.addEventListener('change', () => { document.querySelector('.app').inert = sideways.matches; refreshClocks(); });
+sideways.addEventListener('change', () => { document.querySelector('.app').inert = sideways.matches; if (!sideways.matches) buildRotate(); refreshClocks(); });
 document.querySelector('.app').inert = sideways.matches;
 function syncClocks() {
   const showing = !document.hidden && !$('help-dialog').open && !sideways.matches;
@@ -248,7 +287,7 @@ function sizeTiles() {
   const cards = puzzle().cards, app = shelf.closest('.app'), area = $('play-area');
   const tooTall = () => {
     const bar = document.querySelector('.bottom').getBoundingClientRect(), table = shelf.getBoundingClientRect();
-    const hitsBar = r => r.left < bar.right && bar.left < r.right && r.bottom > bar.top + .5;
+    const hitsBar = r => r.left < bar.right && bar.left < r.right && r.bottom > bar.top - 2;   // with a little air above the buttons
     return app.scrollHeight > app.clientHeight || (between && document.documentElement.scrollHeight > innerHeight) || table.bottom > area.getBoundingClientRect().bottom + .5 || hitsBar(table) || hitsBar(message.getBoundingClientRect());
   };
   const [left, right] = [0, 1].map(c => Math.max(...cards.filter(card => card.column === c).map(card => card.word.length)));
@@ -259,9 +298,12 @@ function sizeTiles() {
   // A wide screen gets bigger tiles, growing with the window's height.
   const tall = Math.max(0, innerHeight - 800);
   mat.style.setProperty('--mat-s', `${Math.min(between ? Math.min(72, 60 + Math.floor(tall / 20)) : 50, Math.floor((mat.clientWidth - 30 - 6 * (longest - 1)) / longest))}px`);
+  // The trays reach a little past their words, so leave enough over that they sit at least 9px from the screen's edge.
+  const colGap = parseFloat(getComputedStyle(shelf).columnGap), reach = -parseFloat(getComputedStyle(shelf.querySelector('.bed')).marginLeft), gutter = parseFloat(getComputedStyle(app).paddingLeft);
+  const spare = Math.max(8, 4 * (9 - gutter + reach));
   let size = between
     ? Math.floor(((shelf.clientWidth - m.width - 2 * parseFloat(getComputedStyle(shelf).columnGap)) / 2 - 3 * (longest - 1)) / longest)   // two equal sides around the mat
-    : Math.floor((shelf.clientWidth - 26 - 3 * (left + right - 2)) / (left + right));   // two 12px aisles around the divider
+    : Math.floor((shelf.clientWidth - 2 * colGap - spare - 3 * (left + right - 2)) / (left + right));   // the aisles around the divider, and room for the trays to stay off the screen's edge
   size = Math.max(20, Math.min(between ? Math.min(66, 56 + Math.floor(tall / 25)) : 46, size));
   shelf.style.setProperty('--shelf-s', `${size}px`);
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);

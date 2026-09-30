@@ -76,5 +76,7 @@ export function streak(days, now=Date.now()) {
 export function shareText(puzzle, record, url, { relaxed = false } = {}) {
   if(record.finishedAt===null)throw new Error('Finish the puzzle before sharing your result.');
   const s=record.state;
-  return `Spoondle #${puzzle.id}\n${s.revealed?`Gave up${relaxed?'':` after ${formatTime(elapsedMs(record))}`} · ${s.solved.length-s.revealed} of ${puzzle.answers.length} found`:relaxed?'Solved in relax mode 🍵':`Solved in ${formatTime(elapsedMs(record))}`} · 👁️ ${s.misses} peek${s.misses===1?'':'s'} · 💡 ${s.hints} hint${s.hints===1?'':'s'}\n${s.revealed||relaxed?'Can you solve it?':'Can you beat my time?'}\n${url}`;
+  // Thin spaces around the dots (and none between a dot and the bulb, whose glyph carries its own space) keep the second line short enough for one line in Messages.
+  const dot='\u2009·\u2009', head=s.revealed?`Gave up${relaxed?'':` after ${formatTime(elapsedMs(record))}`}${dot}${s.solved.length-s.revealed} of ${puzzle.answers.length} found`:relaxed?'Relax mode ☕\uFE0F':`Solved in ${formatTime(elapsedMs(record))}`;
+  return `Spoondle #${puzzle.id}\n${head}${dot}👁️ ${s.misses} peek${s.misses===1?'':'s'}\u2009·💡 ${s.hints} hint${s.hints===1?'':'s'}\n${s.revealed||relaxed?'Can you solve it?':'Can you beat my time?'}\n${url}`;
 }
