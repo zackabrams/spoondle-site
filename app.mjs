@@ -13,8 +13,10 @@ const shelf = $('shelf'), mat = $('mat'), tray = $('tray'), clue = $('clue'), me
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // With Reduce Motion on, tiles still slide (briefly, without the bounce) so a move stays readable; the big motion stays off.
 const SPRING = RM ? 'ease-out' : 'cubic-bezier(.2,1.35,.45,1)', SNAP = RM ? 200 : 360;
-// How far past the mat's edge a letter has to be pulled before its whole word comes along.
-const TEAR = 56;
+// How far past the mat's edge a letter has to be pulled before its whole word comes along. Letters stop being trade targets
+// at the mat's edge, so a short pull is enough; with the mat above the tiles, the message line sits between them, and a
+// longer one meant reaching the tiles before the word came off.
+const TEAR = 20;
 const CLUE_KEY = 'Yellow: Swap this letter. Gray: Leave it.';
 
 // ---------- saved progress ----------
