@@ -171,7 +171,7 @@ function showRelax() {
   const b = $('relax'); b.innerHTML = relaxed ? TEACUP : STOPWATCH; b.setAttribute('aria-pressed', String(relaxed));
   b.setAttribute('aria-label', relaxed ? 'Game mode: relax. Switch to timer mode' : 'Game mode: timer. Switch to relax mode'); b.title = relaxed ? 'Relax mode' : 'Timer mode';
   document.documentElement.classList.toggle('relaxed', relaxed);
-  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'Timer mode: The clock runs while you play.';
+  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time' : 'Timer mode: The clock runs while you play';
 }
 const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>');
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
@@ -202,14 +202,14 @@ function showMat() {
   document.documentElement.classList.toggle('mat-top', matTop);
   b.innerHTML = matTop ? MAT_ABOVE : MAT_BELOW; b.setAttribute('aria-pressed', String(matTop));
   b.setAttribute('aria-label', matTop ? 'Mat position: above the tiles. Switch to below' : 'Mat position: below the tiles. Switch to above'); b.title = matTop ? 'Mat above the tiles' : 'Mat below the tiles';
-  $('mat-note').textContent = matTop ? 'Above the tiles.' : 'Below the tiles.';
+  $('mat-note').textContent = matTop ? 'Above the tiles' : 'Below the tiles';
 }
 $('matpos').addEventListener('click', () => {
   matTop = !matTop; try { localStorage.setItem('spoondle-mat', matTop ? 'top' : 'below'); } catch {}
   showMat(); clack('pick', .6);
   if (shelf.childElementCount) { sizeTiles(); pileUp(); }
 });
-function showSound() { $('sound-note').textContent = soundOn ? 'Tiles click as you move them.' : 'Off.'; $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
+function showSound() { $('sound-note').textContent = soundOn ? 'Tiles click as you move them' : 'Off'; $('sound').innerHTML = soundOn ? SPEAKER_ON : SPEAKER_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); }
 // Wake the audio whenever it isn't running: iOS leaves it 'interrupted', not 'suspended', after a call or an app switch.
 function ctx() { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state !== 'running') audio.resume().catch(() => {}); return audio; }
 function clack(kind = 'place', volume = 1) {
@@ -470,12 +470,14 @@ function say(parts = null) {
   document.querySelector('.bottom').hidden = r.finishedAt !== null;
   document.documentElement.classList.toggle('is-done', r.finishedAt !== null);   // on a wide screen the page re-centers without that bar
   $('hint').disabled = r.startedAt === null || !hintTargets(p, s).length;
-  if (r.finishedAt !== null && practice) { message.append(note(s.revealed ? 'Answers shown.' : 'Practice puzzle solved!')); return; }
+  if (r.finishedAt !== null && practice) { message.append(note(s.revealed ? 'Answers shown' : 'Practice puzzle solved!')); return; }
   if (r.finishedAt !== null) {
     const next = nextUnfinished();
     // A daily game: once today's puzzle is done, share it, see how you're doing, or go back to an earlier day.
-    const done = note(s.revealed ? 'Answers shown.' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}.`);
-    const wait = document.createElement('span'); wait.className = 'countdown'; done.append(' ', wait);
+    const said = s.revealed ? 'Answers shown' : relaxed ? 'Solved!' : `Solved in ${formatTime(elapsedMs(r))}`;
+    const done = note(said);
+    // No periods on the line, so a dot sets the countdown apart (after "Solved!" the exclamation mark already does).
+    const wait = document.createElement('span'); wait.className = 'countdown'; done.append(said.endsWith('!') ? ' ' : ' · ', wait);
     const share = pill('Share', shareResult, true);
     const stats = pill('Stats', openStats); stats.classList.add('soft'); stats.insertAdjacentHTML('afterbegin', CHART);
     const archive = pill('Archive', openArchive); archive.classList.add('soft'); archive.insertAdjacentHTML('afterbegin', CALENDAR);
@@ -488,8 +490,14 @@ function say(parts = null) {
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
   const n = slots.filter(slot => slot.querySelector('.word')).length;
   const onMat = slots.map(slot => slot.querySelector('.word')).filter(Boolean).map(text);
-  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Trade a letter: Drag it, or tap two.',
-    n === 1 ? `${onMat[0]} is on the mat.` : n === 2 ? `${onMat.join(' and ')} are on the mat.` : ''));
+  const spoken = n === 1 ? `${onMat[0]} is on the mat.` : n === 2 ? `${onMat.join(' and ')} are on the mat.` : '';
+  // Someone who has solved a daily puzzle knows the moves, so the line stays empty until it has news (a wrong trade, a Hint).
+  // A screen reader still hears which words are on the mat.
+  if (!practice && records.some(r => r.finishedAt !== null && r.state.revealed === 0)) {
+    if (spoken) { const s = document.createElement('span'); s.className = 'sr-only'; s.textContent = spoken; message.replaceChildren(s); }
+    return;
+  }
+  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat' : n === 1 ? 'Now one from the other side' : 'Trade a letter: Drag it, or tap two', spoken));
 }
 
 // ---------- motion: move elements in the DOM, then animate each from where it was ----------
@@ -596,7 +604,7 @@ function nope(wrong) {
     const [a, b] = lastSwap, had = document.activeElement;
     flip([a, b], () => domSwap(a, b)); labelWord(a.parentNode); labelWord(b.parentNode); refocus(had); clack('place', .5); busy = false;
     // A wrong trade is free, even one of two matching letters. Its clue counts as a peek, and only once per trade.
-    const said = wrong.unchanged ? 'Those letters match.' : 'Not an answer.';
+    const said = wrong.unchanged ? 'Those letters match' : 'Not an answer';
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
     say(clued ? [said] : [said, revealPill()]);
@@ -706,7 +714,7 @@ function useHint() {
   paintFeedback(); persist(); updateStats(); clack('pick');
   const tile = document.querySelector(`.tile[data-card="${hint.id}"][data-index="${hint.index}"]`);
   if (tile && !RM) tile.animate([{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], { duration: 480, easing: 'ease-out' });
-  say([`Hint: Swap the ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word}.`]);
+  say([`Hint: Swap the ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word}`]);
 }
 function giveUp() {
   $('give-up-dialog').close();
@@ -754,13 +762,13 @@ function pick(tile) {
   unpick(); picked = tile; tile.classList.add('picked'); tile.setAttribute('aria-pressed', 'true'); clack('pick');
   const word = tile.closest('.word');
   // One short line on screen (a longer one wraps on small phones and shifts what is below it); the full sentence is for a screen reader.
-  const line = note('Now the other word.', `${tile.dataset.letter} in ${text(word)} picked.`);
+  const line = note('Now the other word', `${tile.dataset.letter} in ${text(word)} picked.`);
   say(lastWrong ? [line, revealPill()] : [line]);   // a wrong trade's Peek stays on offer
 }
 function pickLetter(tile) {
   if (!picked) return pick(tile);
   const a = picked;
-  if (a === tile) { unpick(); return say(lastWrong ? ['Put down.', revealPill()] : null); }
+  if (a === tile) { unpick(); return say(lastWrong ? ['Put down', revealPill()] : null); }
   if (a.parentNode === tile.parentNode) return pick(tile);
   unpick();
   if (wordOn(0) && wordOn(1)) trade(a, tile);
@@ -907,7 +915,7 @@ addEventListener('resize', () => { sizeTiles(); pileUp(); });
 $('relax').addEventListener('click', () => {
   relaxed = !relaxed; try { localStorage.setItem('spoondle-relax', relaxed ? 'on' : 'off'); } catch {}
   showRelax(); clack('pick', .6);
-  if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock.' : 'Timer mode on.']); else say();
+  if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock' : 'Timer mode on']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
 // A menu that runs past the screen shows a fade and arrow at its foot (see the CSS) until you reach the end.
@@ -925,7 +933,7 @@ let modeTimer = 0;
 function cycleModes(on) {
   clearInterval(modeTimer); if (!on) return;
   const box = $('mode-demo'), btn = box.firstElementChild, words = box.lastElementChild;
-  const modes = [[STOPWATCH, 'Be competitive with timer mode.'], [TEACUP, 'Take your time with relax mode.']];
+  const modes = [[STOPWATCH, 'Be competitive with timer mode'], [TEACUP, 'Take your time with relax mode']];
   let k = 0; btn.innerHTML = modes[0][0]; words.textContent = modes[0][1];
   modeTimer = setInterval(async () => {
     k ^= 1;
@@ -1124,7 +1132,7 @@ function drawStats() {
       <p class="sub"><b>${st.clean}</b> of ${st.solved} solved with no help at all.</p>
       <div class="vcols">${cols}</div></section>
     <section><h3 class="section-label">Last 12 weeks</h3>
-      ${plays.length ? `<div class="heat">${grid}</div>` : '<p class="empty">Your days fill in here as you play.</p>'}
+      ${plays.length ? `<div class="heat">${grid}</div>` : '<p class="empty">Your days fill in here as you play</p>'}
       <div class="heat-legend"><span><i class="clean"></i>Solved</span><span><i class="helped"></i>With help</span><span><i class="gaveup"></i>Answers shown</span><span><i class="none"></i>Missed</span><span><i class="today"></i>Today</span></div></section>
     <section><h3 class="section-label">By category</h3>
       <div class="cat-head"><span></span><span></span><span>Solved</span><span>Typical</span></div>${catRows}</section>`;
@@ -1138,7 +1146,7 @@ function showCountdown(el) {
   const tick = () => {
     if (!el.isConnected) return clearInterval(countdownTimer);
     const now = new Date(), midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
-    el.textContent = `Next puzzle in ${formatTime(midnight - now)}.`; checkNewDay();
+    el.textContent = `Next puzzle in ${formatTime(midnight - now)}`; checkNewDay();
   };
   tick(); countdownTimer = setInterval(tick, 1000);
 }
@@ -1198,7 +1206,7 @@ function addToHomeNudge() {
     nudgedFor = board;
   }
   const card = document.createElement('div'); card.className = 'a2hs';
-  card.innerHTML = `<img class="a2hs-icon" src="apple-touch-icon.png" alt=""><span class="a2hs-text"><strong>Play every day?</strong><span>Add Spoondle to your Home Screen.</span></span>`;
+  card.innerHTML = `<img class="a2hs-icon" src="apple-touch-icon.png" alt=""><span class="a2hs-text"><strong>Play every day?</strong><span>Add Spoondle to your Home Screen</span></span>`;
   const go = pill('Show me', () => openHomeGuide('nudge'));
   go.classList.add('soft'); card.insertBefore(go, null);
   const no = document.createElement('button'); no.type = 'button'; no.className = 'a2hs-no'; no.textContent = 'Don’t show this again';
