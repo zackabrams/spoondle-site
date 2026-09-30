@@ -604,10 +604,11 @@ function nope(wrong) {
     const [a, b] = lastSwap, had = document.activeElement;
     flip([a, b], () => domSwap(a, b)); labelWord(a.parentNode); labelWord(b.parentNode); refocus(had); clack('place', .5); busy = false;
     // A wrong trade is free, even one of two matching letters. Its clue counts as a peek, and only once per trade.
-    const said = wrong.unchanged ? 'Those letters match' : 'Not an answer';
+    // Trading two matching letters needs no words: nothing changed on the mat.
     const clued = state().guesses.includes(guessKey(wrong.ids, wrong.positions));
     lastWrong = clued ? null : wrong;
-    say(clued ? [said] : [said, revealPill()]);
+    const parts = [...(wrong.unchanged ? [] : ['Not an answer']), ...(clued ? [] : [revealPill()])];
+    say(parts.length ? parts : null);
   }, 1000);
 }
 function showClue() {
@@ -714,7 +715,7 @@ function useHint() {
   paintFeedback(); persist(); updateStats(); clack('pick');
   const tile = document.querySelector(`.tile[data-card="${hint.id}"][data-index="${hint.index}"]`);
   if (tile && !RM) tile.animate([{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], { duration: 480, easing: 'ease-out' });
-  say([`Hint: Swap the ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word}`]);
+  say([`The ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word} wants to swap`]);
 }
 function giveUp() {
   $('give-up-dialog').close();
@@ -1301,10 +1302,10 @@ function coachStep() {
 const COACH = {
   intro: { title: 'Let’s play a practice round', text: 'A short puzzle to learn the moves. It won’t count toward your stats.', go: 'Let’s go' },
   left: { text: 'Drag <b>FOOT</b> onto the mat.', from: () => onTable('FOOT'), to: () => mat, place: true },
-  right: { text: 'Now drag <b>CARD</b> onto the mat. A pair is always one word from each column.', from: () => onTable('CARD'), to: () => mat, place: true },
+  right: { text: 'Now drag <b>CARD</b> onto the mat. The answers are always made up of one word from each column.', from: () => onTable('CARD'), to: () => mat, place: true },
   swap: { text: 'Trade one letter between them: Drag the <b>T</b> onto the <b>D</b>.', from: () => tileOf(onTable('FOOT'), 'T'), to: () => tileOf(onTable('CARD'), 'D') },
-  hint: { text: '<b>FOOD CART!</b> Not sure where to start the next one? Tap <b>Hint</b>.', ring: () => $('hint'), lift: () => $('hint') },
-  hinted: { text: 'Hint lit up the <b>U</b> in <b>BUD</b>, so it’s a letter to swap. Drag BUD onto the mat.', from: () => onTable('BUD'), to: () => mat, place: true },
+  hint: { text: '<b>FOOD CART!</b> Not sure how to start? Tap <b>Hint</b>.', ring: () => $('hint'), lift: () => $('hint') },
+  hinted: { text: 'Hint lit up the <b>U</b> in <b>BUD</b>, so it wants to swap. Drag BUD onto the mat.', from: () => onTable('BUD'), to: () => mat, place: true },
   decoy: { text: () => `Which word goes with BUD? Try <b>${decoy().textContent}</b>.`, from: () => decoy(), to: () => mat, place: true },
   putBack: { text: () => `No swap turns BUD and ${decoy().textContent} into an answer, so they aren’t a pair. Put ${decoy().textContent} back: Drag it off the mat, or tap its empty spot.`, from: () => decoy(), to: () => homeOf.get(decoy()) },
   partner: { text: 'Now try <b>BEG</b>. You can drop a word on either spot on the mat.', from: () => onTable('BEG'), to: () => mat, place: true },
