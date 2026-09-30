@@ -15,7 +15,7 @@ const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SPRING = RM ? 'ease-out' : 'cubic-bezier(.2,1.35,.45,1)', SNAP = RM ? 200 : 360;
 // How far past the mat's edge a letter has to be pulled before its whole word comes along.
 const TEAR = 56;
-const CLUE_KEY = 'Yellow: swap this letter. Gray: leave it.';
+const CLUE_KEY = 'Yellow: Swap this letter. Gray: Leave it.';
 
 // ---------- saved progress ----------
 let saved = { records: {}, completionDays: [], current: null };
@@ -171,7 +171,7 @@ function showRelax() {
   const b = $('relax'); b.innerHTML = relaxed ? TEACUP : STOPWATCH; b.setAttribute('aria-pressed', String(relaxed));
   b.setAttribute('aria-label', relaxed ? 'Game mode: relax. Switch to timer mode' : 'Game mode: timer. Switch to relax mode'); b.title = relaxed ? 'Relax mode' : 'Timer mode';
   document.documentElement.classList.toggle('relaxed', relaxed);
-  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'Timer mode: the clock runs while you play.';
+  $('relax-note').textContent = relaxed ? 'Relax mode: no clock, take your time.' : 'Timer mode: The clock runs while you play.';
 }
 const SPEAKER_ON = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>');
 const SPEAKER_OFF = icon('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/>');
@@ -485,7 +485,7 @@ function say(parts = null) {
   if (parts) { message.append(...parts.map(part => typeof part === 'string' ? note(part) : part)); return; }
   const n = slots.filter(slot => slot.querySelector('.word')).length;
   const onMat = slots.map(slot => slot.querySelector('.word')).filter(Boolean).map(text);
-  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Trade a letter: drag it, or tap two.',
+  message.replaceChildren(note(n === 0 ? 'Drag or tap a word onto the mat.' : n === 1 ? 'Now one from the other side.' : 'Trade a letter: Drag it, or tap two.',
     n === 1 ? `${onMat[0]} is on the mat.` : n === 2 ? `${onMat.join(' and ')} are on the mat.` : ''));
 }
 
@@ -703,7 +703,7 @@ function useHint() {
   paintFeedback(); persist(); updateStats(); clack('pick');
   const tile = document.querySelector(`.tile[data-card="${hint.id}"][data-index="${hint.index}"]`);
   if (tile && !RM) tile.animate([{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], { duration: 480, easing: 'ease-out' });
-  say([`Hint: swap the ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word}.`]);
+  say([`Hint: Swap the ${tile?.dataset.letter} in ${puzzle().cards.find(c => c.id === hint.id).word}.`]);
 }
 function giveUp() {
   $('give-up-dialog').close();
@@ -1253,23 +1253,23 @@ const COACH = {
   intro: { title: 'Let’s play a practice round', text: 'A short puzzle to learn the moves. It won’t count toward your stats.', go: 'Let’s go' },
   left: { text: 'Drag <b>FOOT</b> onto the mat.', from: () => onTable('FOOT'), to: () => mat, place: true },
   right: { text: 'Now drag <b>CARD</b> onto the mat. A pair is always one word from each column.', from: () => onTable('CARD'), to: () => mat, place: true },
-  swap: { text: 'Trade one letter between them: drag the <b>T</b> onto the <b>D</b>.', from: () => tileOf(onTable('FOOT'), 'T'), to: () => tileOf(onTable('CARD'), 'D') },
+  swap: { text: 'Trade one letter between them: Drag the <b>T</b> onto the <b>D</b>.', from: () => tileOf(onTable('FOOT'), 'T'), to: () => tileOf(onTable('CARD'), 'D') },
   hint: { text: '<b>FOOD CART!</b> Not sure where to start the next one? Tap <b>Hint</b>.', ring: () => $('hint'), lift: () => $('hint') },
   hinted: { text: 'Hint lit up the <b>U</b> in <b>BUD</b>, so it’s a letter to swap. Drag BUD onto the mat.', from: () => onTable('BUD'), to: () => mat, place: true },
   decoy: { text: () => `Which word goes with BUD? Try <b>${decoy().textContent}</b>.`, from: () => decoy(), to: () => mat, place: true },
-  putBack: { text: () => `No swap turns BUD and ${decoy().textContent} into an answer, so they aren’t a pair. Put ${decoy().textContent} back: drag it off the mat, or tap its empty spot.`, from: () => decoy(), to: () => homeOf.get(decoy()) },
+  putBack: { text: () => `No swap turns BUD and ${decoy().textContent} into an answer, so they aren’t a pair. Put ${decoy().textContent} back: Drag it off the mat, or tap its empty spot.`, from: () => decoy(), to: () => homeOf.get(decoy()) },
   partner: { text: 'Now try <b>BEG</b>. You can drop a word on either spot on the mat.', from: () => onTable('BEG'), to: () => mat, place: true },
   swapHint: { text: 'Now trade the lit <b>U</b> for the <b>E</b>.', from: () => tileOf(onTable('BUD'), 'U'), to: () => tileOf(onTable('BEG'), 'E') },
   third: { text: '<b>BED BUG!</b> Next, put <b>FAIL</b> back on the mat.', from: () => onTable('FAIL'), to: () => mat, place: true },
   fourth: { text: 'And <b>PRAY</b>, from the other column.', from: () => onTable('PRAY'), to: () => mat, place: true },
-  flip: { text: `Tap <span class="icon-btn as-icon">${FLIP}</span> to switch which word is on top. It’s just to help you read: a right answer counts either way.`, ring: () => mat.querySelector('.mat-flip') },
-  wrong: { text: 'Now try a swap that won’t work: drag the <b>L</b> onto the <b>P</b>.', from: () => tileOf(onTable('FAIL'), 'L'), to: () => tileOf(onTable('PRAY'), 'P') },
+  flip: { text: `Tap <span class="icon-btn as-icon">${FLIP}</span> to switch which word is on top. It’s just to help you read: A right answer counts either way.`, ring: () => mat.querySelector('.mat-flip') },
+  wrong: { text: 'Now try a swap that won’t work: Drag the <b>L</b> onto the <b>P</b>.', from: () => tileOf(onTable('FAIL'), 'L'), to: () => tileOf(onTable('PRAY'), 'P') },
   peek: { text: 'Wrong swaps are free. Tap <b>Peek</b> to see which of those two letters should move.', ring: () => peekPill(), lift: () => peekPill() },
   finish: { text: 'Peek lit up the <b>L</b>, so it should move. The <b>P</b> went gray, so it stays. Which letter in <b>PRAY</b> should the L trade with?', ring: () => mat, free: true },
   solo: { text: '<b>FAIR PLAY!</b> The last pair moved onto the mat for you, and this one’s all yours. Hint and Peek are here if you need them.', ring: () => mat, free: true },
   done: { title: 'You’re ready', text: () => `Every day brings a new puzzle with four answers.<br>About those buttons on top:<ul class="coach-keys">${[
-    ['help', 'Review the rules or replay this tutorial'], ['archive', 'Archive: access past puzzles'],
-    ['stats', 'Stats: review your prior performance'], ['theme', matSettingShown() ? 'Settings: change game mode, toggle sound, move the mat, or choose a new table theme' : 'Settings: change game mode, toggle sound, or choose a new table theme']]
+    ['help', 'Review the rules or replay this tutorial'], ['archive', 'Archive: Access past puzzles'],
+    ['stats', 'Stats: Review your prior performance'], ['theme', matSettingShown() ? 'Settings: Change game mode, toggle sound, move the mat, or choose a new table theme' : 'Settings: Change game mode, toggle sound, or choose a new table theme']]
     .map(([id, what]) => `<li><span class="icon-btn as-icon">${$(id).innerHTML}</span>${what}</li>`).join('')}</ul>`,
     ring: () => document.querySelector('.top .tools'), center: true, go: 'Play today’s puzzle', alt: 'Pick a table' },
 };

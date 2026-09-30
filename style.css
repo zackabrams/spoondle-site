@@ -346,6 +346,12 @@ dialog[data-more]::after{opacity:1}
 
 /* ---------- the table picker ---------- */
 #theme-dialog{margin:auto auto max(12px,env(safe-area-inset-bottom))}
+/* Settings has four rows now (the last only on phones), so it may run as tall as How to play before it scrolls, with its rows a touch tighter. */
+#theme-dialog{max-height:96dvh}
+#theme-dialog .setting{padding-block:9px}
+/* The privacy note is two lines; its type shrinks a little with the sheet's width so the longer line stays on one line (it wraps only on the narrowest phones). */
+#theme-dialog{container-type:inline-size}
+#theme-dialog .fine.privacy{font-size:clamp(10.5px,calc(100cqw / 30.2),13px)}
 #theme-dialog::backdrop{background:rgba(0,0,0,.1);-webkit-backdrop-filter:none;backdrop-filter:none}
 .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px;margin-top:12px}
 .swatch{display:grid;gap:6px;padding:0;border:0;background:transparent;color:var(--ink);font-size:13px;font-weight:650;cursor:pointer}
