@@ -279,6 +279,13 @@ dialog p{margin:10px 0;line-height:1.5}
 /* How to play may run a little taller than other sheets, so the buttons get room to breathe below the fine print. */
 #help-dialog{max-height:96dvh;padding-bottom:18px}
 #help-dialog .help-actions{margin-top:14px}
+/* On a short screen the Tip steps aside, and if How to play still runs past the screen a soft fade with a small arrow at its foot
+   says there is more below. It sits over the sheet's bottom edge while there is more to scroll, and clears at the end. */
+@media (max-height:700px){#help-dialog .tip{display:none}}
+#help-dialog::after{content:'';display:block;position:sticky;bottom:-18px;height:46px;margin:-46px -22px 0;pointer-events:none;opacity:0;transition:opacity .2s;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%238d93a3' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center 20px/22px no-repeat,linear-gradient(to bottom,transparent,var(--panel) 62%)}
+#help-dialog[data-more]::after{opacity:1}
+@media (max-width:600px),(orientation:landscape) and (max-height:500px){#help-dialog::after{margin-inline:-16px}}
 .fine.privacy strong{color:var(--ink);font-weight:600}
 .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
 #share-text{width:100%;margin:12px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--table);color:var(--ink);font:inherit;line-height:1.5;resize:vertical}

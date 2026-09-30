@@ -888,7 +888,12 @@ $('relax').addEventListener('click', () => {
   if (record().finishedAt === null) say([relaxed ? 'Relax mode: no clock.' : 'Timer mode on.']); else say();
 });
 $('sound').addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem('spoondle-sound', soundOn ? 'on' : 'off'); } catch {} showSound(); if (soundOn) clack('place'); });
-function openHelp() { $('help-dialog').showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); }
+// When How to play runs past the screen, a fade and arrow at its foot (see the CSS) say there is more below; they clear at the end.
+const helpSheet = $('help-dialog');
+const helpMore = () => helpSheet.toggleAttribute('data-more', helpSheet.scrollHeight - helpSheet.scrollTop - helpSheet.clientHeight > 12);
+helpSheet.addEventListener('scroll', helpMore, { passive: true });
+addEventListener('resize', helpMore);
+function openHelp() { helpSheet.showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); helpMore(); }
 // How to play: the timer line flips between the two modes, as the header button does.
 let modeTimer = 0;
 function cycleModes(on) {
