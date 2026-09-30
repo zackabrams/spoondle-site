@@ -3,6 +3,7 @@ import { puzzles, tutorial } from './puzzles.mjs';
 import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint, lightSwap } from './game.mjs';
 import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
 import { access } from './access.mjs';
+import { browserTracker } from './track.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
 import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
 
@@ -28,6 +29,8 @@ const requested = keys.indexOf(new URL(location.href).searchParams.get('p'));
 let board = requested >= 0 && requested <= latest ? requested : latest;
 // While the practice puzzle is up, it stands in for today's (see startPractice).
 let practice = null;
+// Anonymous play counts (see track.mjs): nothing is saved on the device, and nothing is sent off spoondle.app or under Do Not Track.
+const { track } = browserTracker();
 const puzzle = () => practice ? practice.puzzle : puzzles[board], record = () => practice ? practice.record : records[board], state = () => record().state;
 function persist() {
   saved.current = keys[board]; records.forEach((r, i) => { saved.records[keys[i]] = r; });
@@ -102,7 +105,7 @@ function showStartGate() {
 }
 function startPuzzle() {
   if (record().startedAt !== null) return;
-  record().startedAt = Date.now();
+  record().startedAt = Date.now(); track('start', { p: board + 1 });
   unpile(); showStartGate(); refreshClocks(); focusNext(true);   // the Start button is going away
 }
 // Before Start, the tiles lie face up in a jumbled heap in the middle of the table.
@@ -386,7 +389,19 @@ function sizeTiles() {
     : Math.floor((shelf.clientWidth - 2 * colGap - spare - 3 * (left + right - 2)) / (left + right));   // the aisles around the divider, and room for the trays to stay off the screen's edge
   size = Math.max(20, Math.min(between ? Math.min(66, 56 + Math.floor(tall / 25)) : 46, size));
   shelf.style.setProperty('--shelf-s', `${size}px`);
+  const widest = size;
   while (size > 20 && tooTall()) shelf.style.setProperty('--shelf-s', `${size -= 2}px`);
+  // With the mat between the trays, the mat can be what sets the row's height, and shrinking the trays' tiles then changes nothing.
+  // So a still-too-tall window shrinks the mat (down to 28px), and the trays grow back into the room that frees.
+  if (between && tooTall()) {
+    let matSize = parseFloat(mat.style.getPropertyValue('--mat-s'));
+    while (matSize > 28 && tooTall()) mat.style.setProperty('--mat-s', `${matSize -= 2}px`);
+    while (size < widest) {
+      shelf.style.setProperty('--shelf-s', `${size + 2}px`);
+      if (tooTall()) { shelf.style.setProperty('--shelf-s', `${size}px`); break; }
+      size += 2;
+    }
+  }
 }
 function goTo(index) {
   if (practice) endPractice();
@@ -564,7 +579,7 @@ function trade(a, b, lifted = null) {
   setTimeout(() => {
     if (!hit) return nope({ ids, positions, unchanged });
     checkSwap(puzzle(), state(), ids, positions);
-    finishRecord(puzzle(), record(), practice ? [] : saved.completionDays);
+    if (finishRecord(puzzle(), record(), practice ? [] : saved.completionDays)) track(practice ? 'tutorial_solved' : 'solve', practice ? {} : { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses });
     persist(); updateStats();
     solve(hit, hit.ids[0] === ids[0] ? [wa, wb] : [wb, wa]);
   }, 380);
@@ -691,6 +706,7 @@ function useHint() {
 function giveUp() {
   $('give-up-dialog').close();
   if (busy || !giveUpRecord(puzzle(), record())) return;
+  track('giveup', { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses });
   build();
   if (!RM) [...tray.querySelectorAll('.found.revealed')].forEach((box, i) => box.animate([{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: i * 90, easing: SPRING, fill: 'backwards' }));
 }
@@ -699,6 +715,7 @@ function resultText() {
   return shareText(puzzle(), record(), url.href, { relaxed });
 }
 async function shareResult(button) {
+  track('share', { p: board + 1 });
   const text = resultText();
   if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
   try { await navigator.clipboard.writeText(text); button.textContent = 'Copied!'; }
@@ -876,7 +893,7 @@ function buildPicker() {
     return b;
   }));
 }
-$('theme').addEventListener('click', () => { $('theme-dialog').showModal(); refreshClocks(); });
+$('theme').addEventListener('click', () => { track('open', { n: 'settings' }); $('theme-dialog').showModal(); refreshClocks(); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   let chosen = null; try { chosen = localStorage.getItem('spoondle-theme'); } catch {}
   if (!chosen) applyTheme(systemTheme());
@@ -893,7 +910,7 @@ const helpSheet = $('help-dialog');
 const helpMore = () => helpSheet.toggleAttribute('data-more', helpSheet.scrollHeight - helpSheet.scrollTop - helpSheet.clientHeight > 12);
 helpSheet.addEventListener('scroll', helpMore, { passive: true });
 addEventListener('resize', helpMore);
-function openHelp() { helpSheet.showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); helpMore(); }
+function openHelp() { track('open', { n: 'help' }); helpSheet.showModal(); refreshClocks(); examples.scrollLeft = 0; exampleDir = 1; exampleWas = 0; startDemo(true); cycleModes(true); helpMore(); }
 // How to play: the timer line flips between the two modes, as the header button does.
 let modeTimer = 0;
 function cycleModes(on) {
@@ -1010,6 +1027,7 @@ function playOf(i) {
 }
 let shownMonth = null;
 function openArchive() {
+  track('open', { n: 'archive' });
   const d = new Date(`${dayOf(board)}T12:00:00`); shownMonth = [d.getFullYear(), d.getMonth()];
   drawArchive(); $('archive-dialog').showModal(); refreshClocks();
 }
@@ -1102,7 +1120,7 @@ function drawStats() {
     <section><h3 class="section-label">By category</h3>
       <div class="cat-head"><span></span><span></span><span>Solved</span><span>Typical</span></div>${catRows}</section>`;
 }
-function openStats() { drawStats(); $('stats-dialog').showModal(); refreshClocks(); }
+function openStats() { track('open', { n: 'stats' }); drawStats(); $('stats-dialog').showModal(); refreshClocks(); }
 $('stats').addEventListener('click', openStats);
 // The wait until tomorrow's puzzle, counting down while it's on screen.
 let countdownTimer = 0;
@@ -1136,6 +1154,7 @@ setInterval(updateStats, 250);
 // shows each drag. It never touches saved progress, stats or streaks, and Skip leaves at any point.
 const coach = { card: null, ring: null, finger: null, raf: 0, step: null };
 function startPractice() {
+  track('tutorial_start');
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   syncClocks(); persist();
   practice = { puzzle: tutorial, record: freshRecord(tutorial), intro: true };
@@ -1218,10 +1237,10 @@ function coachUpdate() {
   }
   coach.card.innerHTML = `${c.title ? `<strong>${c.title}</strong>` : ''}<p>${typeof c.text === 'function' ? c.text() : c.text}</p><div class="coach-actions">${c.alt ? `<button type="button" class="pill soft" data-coach="alt">${c.alt}</button>` : ''}${c.go ? `<button type="button" class="pill primary" data-coach="go">${c.go}</button>` : ''}${step === 'done' ? '' : '<button type="button" class="pill soft" data-coach="skip">Skip tutorial</button>'}</div>`;
   coach.card.querySelector('[data-coach="go"]')?.addEventListener('click', () => {
-    if (step === 'intro') { practice.intro = false; coachUpdate(); } else endPractice();
+    if (step === 'intro') { practice.intro = false; coachUpdate(); } else { track('tutorial_done'); endPractice(); }
   });
-  coach.card.querySelector('[data-coach="skip"]')?.addEventListener('click', endPractice);
-  coach.card.querySelector('[data-coach="alt"]')?.addEventListener('click', () => { endPractice(); $('theme').click(); });
+  coach.card.querySelector('[data-coach="skip"]')?.addEventListener('click', () => { track('tutorial_skip', { n: step }); endPractice(); });
+  coach.card.querySelector('[data-coach="alt"]')?.addEventListener('click', () => { track('tutorial_done', { n: 'table' }); endPractice(); $('theme').click(); });
   // Cards with nothing to point at, and the closing tour, sit in the middle of the screen.
   coach.card.classList.toggle('centered', !!c.center || (!c.from && !c.ring));
   // A button the step asks for (Hint, Peek) rises above the dimming too.
@@ -1344,5 +1363,6 @@ function welcome() {
 buildPicker(); applyTheme(theme()); showSound(); showRelax(); showMat(); build();
 // A first visit starts with the practice puzzle (How to play is always a tap away); ?practice replays it.
 let practiceSeen = true; try { practiceSeen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
+track('visit', { p: board + 1, r: records.some(r => r.startedAt !== null) ? 1 : 0 });
 if (!helpSeen && !practiceSeen) welcome().then(startPractice);
 else { welcome(); if (new URLSearchParams(location.search).has('practice')) startPractice(); }   // welcome() only clears the title card if it's up
