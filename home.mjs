@@ -12,12 +12,19 @@ export function homeScreenKind({ userAgent = '', platform = '', maxTouchPoints =
   return null;
 }
 
-export const STEPS = {
-  ios: ['Tap <b>Share</b> {share}', 'Choose <b>Add to Home Screen</b> {add}'],
-  android: ['Tap the <b>⋮</b> menu', 'Choose <b>Add to Home screen</b> {add}'],
+// The steps shown in the Add to Home Screen guide: plain words, what to look for, and which little picture goes with each.
+export const GUIDE = {
+  ios: [
+    { title: 'Open the Share menu', hint: 'Tap the Share button at the bottom of your screen. No Share button? Press and hold the address bar, then tap “Share”.', art: 'share2' },
+    { title: 'Tap “Add to Home Screen”', hint: 'You may need to swipe up to find it.', art: 'row' },
+    { title: 'Tap “Add”', hint: 'It’s in the top right corner.', art: 'add' },
+  ],
+  android: [
+    { title: 'Tap the menu button', hint: 'It’s the three dots in the top right corner of your browser.', art: 'menu' },
+    { title: 'Tap “Add to Home screen”', hint: 'Some phones say “Install app” instead.', art: 'row' },
+    { title: 'Tap “Add”', hint: 'Spoondle will appear with your other apps.', art: 'add' },
+  ],
 };
-
-export const SUMMARY = { ios: 'Tap Share, then Add to Home Screen.', android: 'Tap the ⋮ menu, then Add to Home screen.' };
 
 // An iPhone's Home Screen icon opens with its own, empty storage, so the page's link carries the saved puzzles and settings
 // along after the # (which stays in the browser and is never sent to a server). index.html reads them when the icon opens.

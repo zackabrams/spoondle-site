@@ -4,7 +4,7 @@ import { checkSwap, tradeAnswer, guessKey, solvedAnswer, hintTargets, revealHint
 import { LAUNCH, iso, today, addDays, daysBetween, dayOf, indexOfDay, shortDate, monthDay, monthTitle } from './schedule.mjs';
 import { access } from './access.mjs';
 import { browserTracker } from './track.mjs';
-import { homeScreenKind, STEPS, SUMMARY, carryPayload } from './home.mjs';
+import { homeScreenKind, GUIDE, carryPayload } from './home.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
 import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
 
@@ -581,7 +581,7 @@ function trade(a, b, lifted = null) {
   setTimeout(() => {
     if (!hit) return nope({ ids, positions, unchanged });
     checkSwap(puzzle(), state(), ids, positions);
-    if (finishRecord(puzzle(), record(), practice ? [] : saved.completionDays)) track(practice ? 'tutorial_solved' : 'solve', practice ? {} : { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses });
+    if (finishRecord(puzzle(), record(), practice ? [] : saved.completionDays)) { if (!practice) justSolved = board; track(practice ? 'tutorial_solved' : 'solve', practice ? {} : { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses }); }
     persist(); updateStats();
     solve(hit, hit.ids[0] === ids[0] ? [wa, wb] : [wb, wa]);
   }, 380);
@@ -1157,12 +1157,25 @@ setInterval(updateStats, 250);
 
 
 // ---------- Add to Home Screen ----------
-// A card after a player's first solved puzzle, and a row in Settings, on phones that can add a Home Screen icon and haven't.
+// A card after a puzzle is solved (the next solve, for anyone who has played before), and a row in Settings, on phones that can add a
+// Home Screen icon and haven't. The card shows after up to three solves, and never again once it's dismissed or followed.
 const A2HS_KEY = 'spoondle-a2hs';   // set once the card is dismissed or followed
+const A2HS_SHOWN = 'spoondle-a2hs-shown';   // how many solves have shown it
+let justSolved = -1, nudgedFor = -1;   // the board solved in this visit, and the one the card was already counted for
 const SHARE = icon('<path d="M12 15V3.5M8 7l4-4 4 4M6.5 10H6a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18 10h-.5"/>');
 const ADD = icon('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>');
 const homeKind = () => homeScreenKind({ userAgent: navigator.userAgent, platform: navigator.platform, maxTouchPoints: navigator.maxTouchPoints, standalone: navigator.standalone === true || matchMedia('(display-mode: standalone)').matches });
-const stepsHtml = kind => `<ol class="a2hs-steps">${STEPS[kind].map((s, i) => `<li><span class="n">${i + 1}</span><span>${s.replace('{share}', SHARE).replace('{add}', ADD)}</span></li>`).join('')}</ol>`;
+const MENU_LINES = icon('<path d="M5 7h14M5 12h14M5 17h14"/>');
+const RELOAD = icon('<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5"/>');
+const DOTS = icon('<circle cx="5.5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18.5" cy="12" r="1.3" fill="currentColor"/>');
+const DOTS_UP = icon('<circle cx="12" cy="5.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="18.5" r="1.3" fill="currentColor"/>');
+// A little picture of what to look for at each step, drawn from the page's own pieces (hidden from screen readers: the words say it all).
+const artHtml = (art, kind) => ({
+  menu: `<span class="art art-icon" aria-hidden="true">${DOTS_UP}</span>`,
+  share2: `<span class="art art-icon" aria-hidden="true">${SHARE}<span>Share</span></span><span class="look" aria-hidden="true">Or press and hold this</span><span class="art art-bar" aria-hidden="true">${MENU_LINES}<span>spoondle.app</span>${RELOAD}</span>`,
+  row: `<span class="art art-row" aria-hidden="true"><span>${kind === 'ios' ? 'Add to Home Screen' : 'Add to Home screen'}</span>${ADD}</span>`,
+  add: `<span class="art art-add" aria-hidden="true"><img src="apple-touch-icon.png" alt=""><span>Spoondle</span><b>Add</b></span>`,
+}[art]);
 // On an iPhone the icon opens with empty storage, so while the steps are showing the page's link carries the saved puzzles along
 // (index.html reads them when the icon opens). It comes off again when the steps close.
 const carrying = on => {
@@ -1172,18 +1185,19 @@ const carrying = on => {
 const a2hsDone = () => { try { localStorage.setItem(A2HS_KEY, 'no'); } catch {} };
 function addToHomeNudge() {
   const kind = homeKind(); let dismissed = null; try { dismissed = localStorage.getItem(A2HS_KEY); } catch {}
-  const solvedOnce = records.filter(r => r.finishedAt !== null && r.state.revealed === 0).length === 1;
-  if (!kind || dismissed || practice || !solvedOnce || record().state.revealed > 0) return;
+  if (!kind || dismissed || practice || justSolved !== board || record().state.revealed > 0) return;
+  if (nudgedFor !== board) {
+    let shown = 0; try { shown = Number(localStorage.getItem(A2HS_SHOWN)) || 0; } catch {}
+    if (shown >= 3) return;
+    try { localStorage.setItem(A2HS_SHOWN, String(shown + 1)); } catch {}
+    nudgedFor = board;
+  }
   const card = document.createElement('div'); card.className = 'a2hs';
   card.innerHTML = `<img class="a2hs-icon" src="apple-touch-icon.png" alt=""><span class="a2hs-text"><strong>Play every day?</strong><span>Add Spoondle to your Home Screen.</span></span>`;
-  const go = pill('Show me', () => {
-    const open = !card.querySelector('.a2hs-steps');
-    if (open) { card.insertAdjacentHTML('beforeend', stepsHtml(kind)); go.textContent = 'Got it'; carrying(true); track('open', { n: 'a2hs_nudge' }); }
-    else { card.querySelector('.a2hs-steps').remove(); carrying(false); a2hsDone(); card.remove(); no.remove(); }
-  });
+  const go = pill('Show me', () => openHomeGuide('nudge'));
   go.classList.add('soft'); card.insertBefore(go, null);
   const no = document.createElement('button'); no.type = 'button'; no.className = 'a2hs-no'; no.textContent = 'Don’t show this again';
-  no.addEventListener('click', () => { carrying(false); a2hsDone(); track('open', { n: 'a2hs_no' }); card.remove(); no.remove(); });
+  no.addEventListener('click', () => { a2hsDone(); track('open', { n: 'a2hs_no' }); card.remove(); no.remove(); });
   message.append(card, no);
   // Only where there's room: on a short screen the card would push the page past the bottom, so it steps aside.
   requestAnimationFrame(() => { if (document.documentElement.scrollHeight > innerHeight + 1) { card.remove(); no.remove(); } });
@@ -1192,13 +1206,22 @@ function showHomeRow() {
   const kind = homeKind(); $('a2hs-setting').hidden = !kind;
   if (kind) $('a2hs-btn').innerHTML = ADD;
 }
-$('a2hs-btn').addEventListener('click', () => {
-  const kind = homeKind(), note = $('a2hs-note'), open = $('a2hs-btn').getAttribute('aria-expanded') !== 'true';
-  $('a2hs-btn').setAttribute('aria-expanded', String(open));
-  note.textContent = open ? SUMMARY[kind] : 'Open Spoondle like an app.';
-  carrying(open); if (open) track('open', { n: 'a2hs_row' });
+// The guide: big numbered steps with a picture of each. While it's open, an iPhone's link carries the saved puzzles along (see `carrying`).
+let guideFrom = null;
+function openHomeGuide(from) {
+  const kind = homeKind(); if (!kind) return;
+  guideFrom = from;
+  $('a2hs-steps').innerHTML = GUIDE[kind].map((s, i) => `<li><span class="n">${i + 1}</span><span class="what"><strong>${s.title}</strong><span>${s.hint}</span>${s.art === 'share2' ? '<span class="look" aria-hidden="true">Look for this</span>' : ''}${artHtml(s.art, kind)}</span></li>`).join('');
+  $('a2hs-dialog').scrollTop = 0; carrying(true); track('open', { n: from === 'nudge' ? 'a2hs_nudge' : 'a2hs_row' });
+  $('a2hs-dialog').showModal();
+}
+$('a2hs-btn').addEventListener('click', () => openHomeGuide('row'));
+// However it closes (Got it, the ×, Escape), the link is tidied; from the card it also means the card has done its job.
+$('a2hs-dialog').addEventListener('close', () => {
+  carrying(false);
+  if (guideFrom === 'nudge') { a2hsDone(); document.querySelectorAll('.a2hs, .a2hs-no').forEach(el => el.remove()); }
+  guideFrom = null;
 });
-$('theme-dialog').addEventListener('close', () => { $('a2hs-btn').setAttribute('aria-expanded', 'false'); $('a2hs-note').textContent = 'Open Spoondle like an app.'; carrying(false); });
 
 // ---------- the practice puzzle: a guided first game ----------
 // A short board played for real, with a coach card, a spotlight on what to touch next, and a finger that

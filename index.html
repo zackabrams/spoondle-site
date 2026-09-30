@@ -34,9 +34,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=13kerlhb">
-<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=56t5si7d","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=1nlkfis0"}}</script>
-<script type="module" src="app.mjs?v=3xpkbx32"></script>
+<link rel="stylesheet" href="style.css?v=1e58q03c">
+<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=56t5si7d","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=10bgw05w"}}</script>
+<script type="module" src="app.mjs?v=2e2se7wg"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater!" width="2000" height="1050"></div>
@@ -110,6 +110,12 @@
   <h3 class="section-label">Table theme</h3>
   <div class="swatches" id="swatches"></div>
   <p class="fine privacy"><strong>Privacy:</strong> Your progress and stats stay on this device.<br>No accounts, no ads, no cookies. Visits counted anonymously.</p>
+</dialog>
+<dialog id="a2hs-dialog" aria-labelledby="a2hs-title">
+  <div class="dialog-top"><h2 id="a2hs-title">Add to Home Screen</h2><button class="close-button" data-close="a2hs-dialog" aria-label="Close">×</button></div>
+  <p class="a2hs-lead">Put Spoondle with your other apps.</p>
+  <ol class="howto" id="a2hs-steps"></ol>
+  <button class="pill primary full a2hs-got" type="button" data-close="a2hs-dialog">Got it</button>
 </dialog>
 <dialog id="archive-dialog" class="sheet" aria-labelledby="archive-title">
   <div class="dialog-top"><h2 id="archive-title">Archive</h2><button class="close-button" data-close="archive-dialog" aria-label="Close">×</button></div>
