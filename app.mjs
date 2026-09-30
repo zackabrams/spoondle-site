@@ -857,6 +857,7 @@ const THEMES = [['oak', 'Kitchen table'], ['linen', 'Linen & cork'], ['blueprint
 const THEME_COLOR = { oak: '#c68b49', linen: '#e6dfd2', blueprint: '#1b3a67', felt: '#1c5a40', light: '#dfe4ee', dark: '#121827' };
 const systemTheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'oak';
 const theme = () => document.documentElement.dataset.theme;
+const savedTheme = () => { try { return localStorage.getItem('spoondle-theme'); } catch { return null; } };
 function applyTheme(id, save = false) {
   document.documentElement.dataset.theme = id;
   if (save) try { localStorage.setItem('spoondle-theme', id); } catch {}
@@ -878,8 +879,7 @@ function buildPicker() {
 }
 $('theme').addEventListener('click', () => { $('theme-dialog').showModal(); refreshClocks(); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  let chosen = null; try { chosen = localStorage.getItem('spoondle-theme'); } catch {}
-  if (!chosen) applyTheme(systemTheme());
+  if (!savedTheme() && !practice?.firstRun) applyTheme(systemTheme());
 });
 addEventListener('resize', () => { sizeTiles(); pileUp(); });
 $('relax').addEventListener('click', () => {
@@ -1133,16 +1133,22 @@ const coach = { card: null, ring: null, finger: null, raf: 0, step: null };
 function startPractice() {
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   syncClocks(); persist();
-  practice = { puzzle: tutorial, record: freshRecord(tutorial), intro: true };
+  let seen = true; try { seen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
+  practice = { puzzle: tutorial, record: freshRecord(tutorial), intro: true, firstRun: !seen && !savedTheme() };
   practice.record.startedAt = Date.now();
   document.documentElement.classList.add('practicing');
+  // A first-ever visit plays the practice round on Kitchen table, whose mat reads plainly to a newcomer.
+  // A replay keeps whatever table the player has now.
+  if (practice.firstRun) applyTheme('oak');
   build(false);
 }
 function endPractice() {
   if (!practice) return;
+  const firstRun = practice.firstRun;
   practice = null;
   document.documentElement.classList.remove('practicing');
   try { localStorage.setItem('spoondle-practice-seen', '1'); } catch {}
+  if (firstRun && !savedTheme()) applyTheme(systemTheme());
   for (const k of ['card', 'ring', 'finger']) { coach[k]?.remove(); coach[k] = null; }
   document.querySelectorAll('.coach-lift').forEach(el => el.classList.remove('coach-lift'));
   cancelAnimationFrame(coach.raf); coach.step = null; coach.box = null; coach.cardY = coach.cardX = null;
