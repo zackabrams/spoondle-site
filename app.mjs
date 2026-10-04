@@ -28,7 +28,8 @@ let records = puzzles.map((p, i) => restoreRecord(p, saved.records[keys[i]]));
 const latestNow = () => Math.max(0, Math.min(puzzles.length - 1, daysBetween(LAUNCH, today())));
 let latest = latestNow();
 // Open on today's puzzle, or on an earlier one named in the link (?p=).
-const requested = keys.indexOf(new URL(location.href).searchParams.get('p'));
+// An iPhone Home Screen icon added while an older puzzle was showing remembers that puzzle's link (?p=), so the installed app always opens on today's.
+const requested = navigator.standalone === true ? -1 : keys.indexOf(new URL(location.href).searchParams.get('p'));
 let board = requested >= 0 && requested <= latest ? requested : latest;
 // While the practice puzzle is up, it stands in for today's (see startPractice).
 let practice = null;
@@ -1492,14 +1493,5 @@ buildPicker(); applyTheme(theme()); showSound(); showRelax(); showMat(); showHom
 // A first visit starts with the practice puzzle (How to play is always a tap away); ?practice replays it.
 let practiceSeen = true; try { practiceSeen = localStorage.getItem('spoondle-practice-seen') !== null; } catch {}
 track('visit', { p: board + 1, r: records.some(r => r.startedAt !== null) ? 1 : 0, ...(navigator.standalone === true || matchMedia('(display-mode: standalone)').matches ? { n: 'app' } : {}) });
-// Temporary: one anonymous layout reading from the installed app (is it marked as one, the screen height, the top and bottom padding, the notch insets, the room under the buttons), to see why the status bar push-down isn't showing. Remove once that's settled.
-if (navigator.standalone === true || matchMedia('(display-mode: standalone)').matches) setTimeout(() => {
-  try {
-    const probe = document.createElement('div'); probe.style.cssText = 'position:fixed;visibility:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)'; document.body.append(probe);
-    const cs = getComputedStyle(document.querySelector('.app')), ps = getComputedStyle(probe), r = x => Math.max(0, Math.round(parseFloat(x) || 0));
-    const gap = innerHeight - document.querySelector('.bottom').getBoundingClientRect().bottom; probe.remove();
-    track('open', { n: `L${document.documentElement.classList.contains('home-app') ? 1 : 0}h${r(innerHeight)}t${r(cs.paddingTop)}b${r(cs.paddingBottom)}s${r(ps.paddingTop)}x${r(ps.paddingBottom)}g${r(gap)}` });
-  } catch {}
-}, 2500);
 if (!helpSeen && !practiceSeen) welcome().then(startPractice);
 else { welcome(); if (new URLSearchParams(location.search).has('practice')) startPractice(); }   // welcome() only clears the title card if it's up
