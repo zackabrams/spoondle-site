@@ -6,7 +6,7 @@ import { access } from './access.mjs';
 import { browserTracker } from './track.mjs';
 import { homeScreenKind, GUIDE, carryPayload } from './home.mjs';
 import { summarize, TIME_BINS } from './stats.mjs';
-import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText } from './progress.mjs';
+import { localDay, freshRecord, STORAGE_KEY, puzzleKey, restoreRecord, readProgress, elapsedMs, formatTime, finishRecord, giveUpRecord, pauseRecord, resumeRecord, shareText, ordinal } from './progress.mjs';
 
 const $ = id => document.getElementById(id);
 const shelf = $('shelf'), mat = $('mat'), tray = $('tray'), clue = $('clue'), message = $('message');
@@ -596,7 +596,10 @@ function trade(a, b, lifted = null) {
   setTimeout(() => {
     if (!hit) return nope({ ids, positions, unchanged });
     checkSwap(puzzle(), state(), ids, positions);
-    if (finishRecord(puzzle(), record(), practice ? [] : saved.completionDays)) { if (!practice) justSolved = board; track(practice ? 'tutorial_solved' : 'solve', practice ? {} : { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses }); }
+    if (finishRecord(puzzle(), record(), practice ? [] : saved.completionDays)) {
+      if (!practice) { justSolved = board; if (board >= THANKS_FROM && localDay(record().finishedAt) === dayOf(board)) thanksCount = solvedCount(board); }
+      track(practice ? 'tutorial_solved' : 'solve', practice ? {} : { p: board + 1, ms: elapsedMs(record()), h: state().hints, k: state().misses });
+    }
     persist(); updateStats();
     solve(hit, hit.ids[0] === ids[0] ? [wa, wb] : [wb, wa]);
   }, 380);
@@ -702,7 +705,7 @@ function flyToTray(merged, hit) {
     const done = record().finishedAt !== null;
     if (!practice) $('count').textContent = `${monthDay(dayOf(board))}${done ? ' ✓' : ''}`;
     define(hit); say();
-    if (done) { celebrate(); if (usingKeyboard) message.querySelector('.pill.primary')?.focus({ preventScroll: true }); } else { placeLastPair(RM ? 0 : 450); focusNext(); }
+    if (done) { celebrate(); thankYou(); if (usingKeyboard) message.querySelector('.pill.primary')?.focus({ preventScroll: true }); } else { placeLastPair(RM ? 0 : 450); focusNext(); }
   };
   if (RM) { finish(); return; }
   merged.animate([
@@ -735,13 +738,45 @@ function resultText() {
   const url = new URL(location.href); url.search = ''; url.hash = ''; url.searchParams.set('p', keys[board]);
   return shareText(puzzle(), record(), url.href, { relaxed });
 }
-async function shareResult(button) {
-  track('share', { p: board + 1 });
+// `from` says which Share was tapped: 'solved' (under the board) or 'thanks' (in the note after today's puzzle).
+async function shareResult(button, from = 'solved') {
+  track('share', { p: board + 1, n: from });
   const text = resultText();
-  if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  if (navigator.share) { try { await navigator.share({ text }); return true; } catch (e) { if (e.name === 'AbortError') return; } }
   try { await navigator.clipboard.writeText(text); button.textContent = 'Copied!'; }
   catch { $('share-text').value = text; $('share-dialog').showModal(); $('share-text').select(); }
 }
+// Today's puzzle, solved on its own day without Show answers: a note from Zack saying how many people have finished it so far,
+// once the confetti has had its moment. The count is asked for the moment the last answer lands, so it's back by then.
+// The count is kept by /api/count on spoondle.app (functions/api/count.js), which counts every on-the-day solve, even from a player
+// who has turned the note off. Anywhere else (a local preview) the number is made up: ?nth=12 sets it, and ?nth=0 shows the note
+// as it reads when the count can't be had (offline, slow, or refused).
+let thanksCount = null;
+const THANKS_FROM = 41;   // Spoondle #42 (Oct 31, 2026), the day it went live; its count picks up from the solves logged before then
+const THANKS_KEY = 'spoondle-thanks';   // 'no' once the player has asked not to see it again
+function solvedCount(i) {
+  if (location.hostname !== 'spoondle.app') { const n = new URLSearchParams(location.search).get('nth'); return Promise.resolve(n === null ? 37 : Number(n) || null); }
+  const stop = new AbortController(); setTimeout(() => stop.abort(), 4000);
+  return fetch('/api/count', { method: 'POST', body: JSON.stringify({ p: i + 1 }), signal: stop.signal }).then(r => r.json()).then(d => d.n, () => null);
+}
+function thankYou() {
+  const count = thanksCount, at = board; thanksCount = null;
+  let off = false; try { off = localStorage.getItem(THANKS_KEY) === 'no'; } catch {}
+  if (!count || off || practice || state().revealed > 0) return;
+  setTimeout(async () => {
+    const n = Number(await count.catch(() => null));
+    if (board !== at || document.querySelector('dialog[open]')) return;
+    $('thanks-title').innerHTML = n > 0 ? `Congrats, you’re the <strong>${ordinal(n)}</strong> person to complete today’s Spoondle` : 'Congrats on completing today’s Spoondle!';
+    $('thanks-share').textContent = 'Share';
+    track('open', { n: 'thanks' });
+    $('thanks-dialog').showModal();
+    // Opening puts focus on the ×, and WebKit (Safari, iPhone) rings it even after a tap. A player who taps gets the note itself
+    // focused instead (a screen reader still reads its heading); one using the keyboard keeps the × to land on.
+    if (!usingKeyboard) $('thanks-dialog').focus();
+  }, RM ? 400 : 1500);
+}
+$('thanks-share').addEventListener('click', async e => { if (await shareResult(e.currentTarget, 'thanks')) $('thanks-dialog').close(); });
+$('thanks-no').addEventListener('click', () => { try { localStorage.setItem(THANKS_KEY, 'no'); } catch {} track('open', { n: 'thanks_no' }); $('thanks-dialog').close(); });
 function celebrate() {
   if (RM) return;
   const canvas = document.createElement('canvas'), c2 = canvas.getContext('2d'), w = innerWidth, h = innerHeight, dpr = devicePixelRatio || 1;

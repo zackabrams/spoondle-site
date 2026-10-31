@@ -55,6 +55,8 @@ export function formatTime(ms) {
   const sec=Math.floor(ms/1000), h=Math.floor(sec/3600), m=Math.floor(sec/60)%60,s=sec%60;
   return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;
 }
+// 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st, with a comma in the thousands (1,001st).
+export function ordinal(n) { const t=n%100,o=n%10;return n.toLocaleString('en-US')+(t>10&&t<14?'th':o===1?'st':o===2?'nd':o===3?'rd':'th'); }
 export function localDay(now=Date.now()) { const d=new Date(now);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 export function finishRecord(puzzle, record, days, now=Date.now()) {
   if(record.startedAt===null||record.finishedAt!==null||record.state.solved.length!==puzzle.answers.length)return false;

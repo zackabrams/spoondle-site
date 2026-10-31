@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Zack Abrams. All rights reserved. Not licensed for reuse; see LICENSE.
 // Anonymous play counts for spoondle.app, sent to /api/e (see analytics/README.md).
 // Nothing is saved on the device: a visit gets a random id that lives only in this page's memory, so one visit's events
-// can be lined up, but a player who comes back cannot be followed. Nothing is sent when the browser asks not to be
-// tracked, or from anywhere but spoondle.app.
+// can be lined up, but a player who comes back cannot be followed. Nothing is sent from anywhere but spoondle.app.
+// Browsers set to Do Not Track / Global Privacy Control are counted too (Zack's call, 2026-10-31), since nothing here
+// identifies a player.
 
 const randomId = (bytes = 6) => {
   const b = new Uint8Array(bytes);
@@ -34,7 +35,7 @@ export function createTracker({ enabled, send, now = () => Date.now(), context =
 
 export function browserTracker() {
   const host = location.hostname;
-  const enabled = host === 'spoondle.app' && navigator.doNotTrack !== '1' && navigator.globalPrivacyControl !== true;
+  const enabled = host === 'spoondle.app';
   const send = json => {
     if (navigator.sendBeacon?.('/api/e', new Blob([json], { type: 'text/plain' }))) return;
     fetch('/api/e', { method: 'POST', body: json, keepalive: true }).catch(() => {});

@@ -35,9 +35,9 @@
 <script>/* The saved table, or the phone's mode until someone picks one: Kitchen table in light, the blueprint in dark. (Lamplight, now retired, became the blueprint.) */try{let t=localStorage.getItem('spoondle-theme');if(t==='lamp')t='blueprint';document.documentElement.dataset.theme=['oak','linen','blueprint','felt','light','dark'].includes(t)?t:(matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak')}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'blueprint':'oak'}</script>
 <link rel="preload" href="fonts/rubik.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=1gfra23d">
-<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=ktr72dwq","./puzzles.mjs":"./puzzles.mjs?v=1dc8g41g","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=dooodull","./home.mjs":"./home.mjs?v=10bgw05w"}}</script>
-<script type="module" src="app.mjs?v=28r77a7b"></script>
+<link rel="stylesheet" href="style.css?v=1xw8uypk">
+<script type="importmap">{"imports":{"./game.mjs":"./game.mjs?v=yjxlt1xg","./progress.mjs":"./progress.mjs?v=21i7rni3","./puzzles.mjs":"./puzzles.mjs?v=1dc8g41g","./seal.mjs":"./seal.mjs?v=rbiw1el5","./schedule.mjs":"./schedule.mjs?v=19cm0ljc","./access.mjs":"./access.mjs?v=22ibhj9b","./stats.mjs":"./stats.mjs?v=1jp3ueei","./track.mjs":"./track.mjs?v=m9arw2w9","./home.mjs":"./home.mjs?v=10bgw05w"}}</script>
+<script type="module" src="app.mjs?v=23ic6pnu"></script>
 </head>
 <body>
 <div class="splash" id="splash" hidden><img alt="Spoondle. You’ll get it spooner or plater!" width="2000" height="1050"></div>
@@ -133,6 +133,13 @@
   <div class="dialog-top"><h2 id="give-up-title">Show the answers?</h2><button class="close-button" data-close="give-up-dialog" aria-label="Keep playing">×</button></div>
   <p>You’ll see the answers you haven’t found, and the clock stops.</p>
   <div class="dialog-actions"><button class="pill" type="button" data-close="give-up-dialog">Keep playing</button><button id="confirm-give-up" class="pill primary" type="button">Show answers</button></div>
+</dialog>
+<dialog id="thanks-dialog" aria-labelledby="thanks-title" tabindex="-1">
+  <div class="dialog-top"><h2 id="thanks-title">Congrats!</h2><button class="close-button" data-close="thanks-dialog" aria-label="Close">×</button></div>
+  <p>If you’re enjoying the game, I’d really appreciate if you sent it to a friend or two (or five!)</p>
+  <p class="thanks-sign">Thanks! — Zack</p>
+  <div class="dialog-actions"><button class="pill" type="button" data-close="thanks-dialog">Close</button><button id="thanks-share" class="pill primary" type="button">Share</button></div>
+  <button id="thanks-no" type="button">cool, but don’t bother me again 🙃</button>
 </dialog>
 <dialog id="share-dialog" aria-labelledby="share-title">
   <div class="dialog-top"><h2 id="share-title">Copy your result</h2><button class="close-button" data-close="share-dialog" aria-label="Close">×</button></div>
