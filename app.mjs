@@ -955,6 +955,24 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if (!chosen) applyTheme(systemTheme());
 });
 addEventListener('resize', () => { sizeTiles(); pileUp(); });
+// iOS (seen in the iPhone Home Screen app): turning the phone sideways and back can leave the page scrolled a little even though
+// it can't scroll, and then taps land off from where buttons are drawn (in Settings you had to tap above a button). The phone
+// layout never scrolls (html and body are overflow: hidden there, same test as the CSS), so put it back at the top. iOS settles
+// the rotation over a few hundred milliseconds, so check again a little later too.
+const phoneLayout = matchMedia('(max-width:600px), (orientation:landscape) and (max-height:500px)');
+function unscroll() {
+  if (!phoneLayout.matches) return;
+  const root = document.scrollingElement || document.documentElement;
+  if (scrollX || scrollY || root.scrollTop || root.scrollLeft || document.body.scrollTop) { scrollTo(0, 0); root.scrollTop = root.scrollLeft = document.body.scrollTop = 0; }
+}
+let unscrollTimers = [];
+function unscrollSoon() { unscroll(); unscrollTimers.forEach(clearTimeout); unscrollTimers = [150, 500, 1000].map(ms => setTimeout(unscroll, ms)); }
+addEventListener('resize', unscrollSoon);
+addEventListener('orientationchange', unscrollSoon);
+addEventListener('scroll', unscroll, { passive: true });
+window.visualViewport?.addEventListener('resize', unscrollSoon);
+addEventListener('pageshow', unscrollSoon);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) unscrollSoon(); });
 $('relax').addEventListener('click', () => {
   relaxed = !relaxed; try { localStorage.setItem('spoondle-relax', relaxed ? 'on' : 'off'); } catch {}
   showRelax(); clack('pick', .6);
